@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
+import AppProviders from "@/providers/AppProviders";
+import Footer from "@/components/Footer";
 import "./globals.css";
 
 const inter = Inter({
@@ -24,9 +26,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.variable} ${playfair.variable} antialiased`}>
-        {children}
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} ${playfair.variable} antialiased`} suppressHydrationWarning>
+        <AppProviders>
+          {children}
+          <Footer />
+        </AppProviders>
       </body>
     </html>
   );

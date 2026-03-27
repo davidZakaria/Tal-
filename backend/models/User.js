@@ -6,6 +6,7 @@ const userSchema = new mongoose.Schema({
   password: { type: String }, // Optional if using OAuth
   name: { type: String },
   role: { type: String, enum: ['Guest', 'Admin'], default: 'Guest' },
+  avatar: { type: String, default: "" },
   googleId: { type: String },
   facebookId: { type: String },
 }, { timestamps: true });

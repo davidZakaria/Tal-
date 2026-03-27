@@ -1,7 +1,10 @@
 const mongoose = require('mongoose');
 
 const reservationSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false }, // Seamless logic for public guests
+  guestName: { type: String, required: true },
+  guestEmail: { type: String, required: true },
+  guestPhone: { type: String, required: true },
   propertyId: { type: mongoose.Schema.Types.ObjectId, ref: 'Property', required: true },
   checkInDate: { type: Date, required: true },
   checkOutDate: { type: Date, required: true },

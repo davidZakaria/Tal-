@@ -1,31 +1,54 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fbf8f5; 
-  --foreground: #06405a; 
-  --primary: #e3c8ab; 
-  --secondary: #06405a; 
+  --color-sand-light: #fbf8f5; 
+  --color-sand: #e3c8ab; 
+  --color-terracotta: #cca68f; /* Muted terracotta */
+  --color-sapphire: #06405a; 
+  --color-turquoise: #8cd0d7; 
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-secondary: var(--secondary);
-  --font-sans: var(--font-inter), Arial, sans-serif;
-  --font-serif: var(--font-playfair), Georgia, serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #022030; 
-    --foreground: #fbf8f5; 
-  }
+  --color-sand-light: var(--color-sand-light);
+  --color-sand: var(--color-sand);
+  --color-terracotta: var(--color-terracotta);
+  --color-sapphire: var(--color-sapphire);
+  --color-turquoise: var(--color-turquoise);
+  
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-playfair), ui-serif, Georgia, serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background-color: var(--color-sand-light);
+  color: var(--color-sapphire);
   font-family: var(--font-sans);
-  transition: background-color 0.4s ease, color 0.4s ease;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hide scrollbar for deeply immersive feel but keep functionality */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-sand-light); 
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-sand); 
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-terracotta); 
+}
+
+/* Fluid rhythmic animations */
+@keyframes wave {
+  0% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-15px) rotate(1deg); }
+  100% { transform: translateY(0px) rotate(0deg); }
+}
+
+.animate-wave {
+  animation: wave 8s ease-in-out infinite;
 }

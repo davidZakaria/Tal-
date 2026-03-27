@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const passport = require('passport');
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { protect } = require('../middleware/authMiddleware');
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET || 'tale-secret-jwt', { expiresIn: '30d' });
@@ -59,9 +61,47 @@ router.post('/login', async (req, res) => {
 });
 
 // @route   GET /api/auth/profile
-// @desc    Get current user profile
+// @desc    Get current user profile securely via JWT
 // @access  Private
-// (Authentication middleware needed here later)
+router.get('/profile', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).select('-password');
+    if (!user) return res.status(404).json({ message: 'User completely untracked.' });
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @route   PUT /api/auth/profile
+// @desc    Update user profile data strictly modifying only authorized fields
+// @access  Private
+router.put('/profile', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: 'User completely untracked.' });
+
+    user.name = req.body.name || user.name;
+    user.email = req.body.email || user.email;
+    user.avatar = req.body.avatar || user.avatar;
+    
+    if (req.body.password) {
+      user.password = req.body.password; // Pre-save hook will flawlessly hash it!
+    }
+
+    const updatedUser = await user.save();
+    res.json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      avatar: updatedUser.avatar,
+      token: generateToken(updatedUser._id),
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 // --- OAUTH 2.0 ROUTES ---
 

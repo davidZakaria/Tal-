@@ -20,7 +20,16 @@ app.use(passport.initialize());
 
 // Routes
 const authRoutes = require('./routes/auth');
+const propertyRoutes = require('./routes/properties');
+const inventoryRoutes = require('./routes/inventory');
+const mediaRoutes = require('./routes/media');
+const paymentRoutes = require('./routes/payment');
+
 app.use('/api/auth', authRoutes);
+app.use('/api/properties', propertyRoutes);
+app.use('/api/inventory', inventoryRoutes);
+app.use('/api/media', mediaRoutes);
+app.use('/api/payment', paymentRoutes);
 
 app.get('/', (req, res) => {
   res.send('Talé API Service is running...');

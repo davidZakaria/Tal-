@@ -1,17 +1,52 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { ArrowRight, Calendar, Users, ChevronDown, CheckCircle2, Loader2 } from "lucide-react";
 import Image from "next/image";
+import { useProperties } from "@/hooks/useProperties";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("All Suites");
+  const { scrollY } = useScroll();
+  const { data: dbProperties, isLoading } = useProperties();
+  const router = useRouter();
+  
+  // Parallax effect for the hero image
+  const heroY = useTransform(scrollY, [0, 1000], [0, 300]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Filter all loaded Properties using React State logic exclusively relying on Class Type Enum
+  const properties = (dbProperties || []).filter(p => activeCategory === "All Suites" || p.roomType === activeCategory);
+
+  const scrollToSanctuaries = () => {
+    document.getElementById("sanctuaries")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
-    <div className="min-h-screen bg-transparent text-foreground flex flex-col font-sans selection:bg-primary/50 relative">
-      
-      {/* Navigation Layer */}
-      <nav className="absolute top-0 w-full p-6 md:px-12 flex justify-between items-center z-50">
-        <div className="flex items-center gap-2">
-          <div className="relative flex items-center h-16 w-32 md:w-40">
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      transition={{ duration: 1.2 }}
+      className="bg-sand-light text-sapphire font-sans selection:bg-turquoise/30"
+    >
+      {/* Sleek Transparent-to-Solid Navigation */}
+      <nav 
+        className={`fixed top-0 w-full z-50 transition-all duration-700 ${
+          isScrolled ? "bg-sand-light/95 backdrop-blur-md shadow-sm py-4" : "bg-transparent py-8"
+        }`}
+      >
+        <div className="container mx-auto px-6 md:px-12 flex justify-between items-center">
+          <div className="relative flex items-center h-12 w-28 md:w-36">
             <Image
               src="/logo.png"
               alt="Talé Hotel"
@@ -20,97 +55,250 @@ export default function Home() {
               priority
             />
           </div>
+          
+          <button onClick={() => router.push('/portal')} className={`px-8 py-3.5 font-bold text-[10px] tracking-[0.2em] uppercase transition-all duration-500 rounded-full ${
+            isScrolled ? "bg-sapphire text-white hover:bg-turquoise hover:shadow-lg" : "bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white hover:text-sapphire"
+          }`}>
+            Guest Portal
+          </button>
         </div>
-        <div className="hidden md:flex gap-10 text-sm font-medium tracking-[0.2em] text-primary/90">
-          <a href="#" className="hover:text-primary transition-colors uppercase">Stay</a>
-          <a href="#" className="hover:text-primary transition-colors uppercase">Experience</a>
-          <a href="#" className="hover:text-primary transition-colors uppercase">Dining</a>
-        </div>
-        <button className="px-6 py-2.5 bg-primary text-secondary font-semibold hover:bg-[#d6b797] transition-all shadow-xl rounded-sm text-sm tracking-wide">
-          BOOK NOW
-        </button>
       </nav>
 
-      {/* Main Hero Layer */}
-      <main className="relative flex-grow flex flex-col items-center justify-center pt-24 pb-12 overflow-hidden bg-background">
+      {/* Immersive Panoramic Hero Section */}
+      <section className="relative h-screen min-h-[800px] w-full overflow-hidden flex items-center justify-center">
         
-        {/* Dynamic Abstract Water & Sand Elements */}
-        {/* Dark theme inherently shifts to the deep ocean blue --background, but we add subtle gradients */}
-        <div className="absolute inset-0 z-0 opacity-10 md:opacity-20 pointer-events-none mix-blend-overlay" 
-             style={{ 
-               backgroundImage: 'radial-gradient(circle at 50% 120%, var(--primary) 0%, transparent 60%)' 
-             }}></div>
-        
-        {/* Wavy Ambient Orbs using Framer Motion */}
-        <motion.div 
-          animate={{ y: [0, -40, 0], opacity: [0.1, 0.2, 0.1] }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-1/4 -right-1/4 w-[50rem] h-[50rem] bg-primary/20 rounded-full blur-[150px] pointer-events-none z-0"
-        />
-        <motion.div 
-          animate={{ y: [0, 40, 0], x: [0, -30, 0], opacity: [0.05, 0.1, 0.05] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="absolute -bottom-1/4 -left-1/4 w-[40rem] h-[40rem] bg-secondary/80 rounded-full blur-[120px] pointer-events-none z-0"
-        />
-
-        <div className="z-10 container mx-auto px-6 max-w-4xl text-center flex flex-col items-center mt-12">
-          
-          <motion.h1 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, ease: "easeOut" }}
-            className="text-6xl md:text-8xl font-light mb-8 text-primary tracking-tighter font-serif"
-          >
-            Welcome to Talé
-          </motion.h1>
-
-          <motion.div 
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
-            className="w-20 h-[0.15rem] bg-primary/80 mb-12 rounded-full"
+        {/* Background Image Parallax Overlay */}
+        <motion.div style={{ y: heroY }} className="absolute inset-0 z-0 scale-110">
+          <div className="absolute inset-0 bg-black/20 z-10" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10" />
+          <Image 
+            src="https://images.unsplash.com/photo-1615880484746-a134be9a6ecf?ixlib=rb-4.0.3&auto=format&fit=crop&w=2500&q=80" 
+            alt="Red Sea Pristine Coast" 
+            fill 
+            className="object-cover"
+            priority
           />
+        </motion.div>
 
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="text-xl md:text-2xl leading-relaxed mb-6 font-light"
-          >
-            Talé Hotel introduces a tailored hospitality experience at the heart of Galala city &mdash; Red Sea.
-          </motion.p>
+        {/* Hero Content & Typography */}
+        <div className="relative z-10 container mx-auto px-6 flex flex-col items-center justify-center h-full text-center text-white mt-12">
           
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.7 }}
-            className="text-lg md:text-xl leading-relaxed mb-6 font-light max-w-3xl opacity-80"
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1.5, delay: 0.2, ease: "easeOut" }}
+            className="flex flex-col items-center"
           >
-            Designed as a seamless extension of the coastal lifestyle, Talé brings together hotel comfort, curated service, and uninterrupted views of the Red Sea.
-          </motion.p>
+            <p className="text-xs md:text-sm font-semibold tracking-[0.4em] uppercase mb-6 text-sand drop-shadow-sm">
+              Galala City • Red Sea
+            </p>
+            <h1 className="text-7xl md:text-[9rem] font-serif font-light tracking-tighter mb-10 drop-shadow-2xl leading-none">
+              Soul of <br/> a Resort.
+            </h1>
+          </motion.div>
 
-          <motion.p
-            initial={{ opacity: 0, y: 20 }}
+          {/* Bright Tactical Booking Widget connected to internal Scroll Anchor */}
+          <motion.div 
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.9 }}
-            className="text-lg md:text-xl leading-relaxed mb-16 font-light max-w-3xl opacity-80"
+            transition={{ duration: 1, delay: 0.8, ease: "easeOut" }}
+            className="absolute bottom-16 w-full max-w-4xl px-4 md:px-0"
           >
-            Whether for a weekend retreat or an annual escape, Talé transforms every stay into a signature experience.
-          </motion.p>
+            <div className="bg-white p-2 md:p-3 rounded-3xl md:rounded-full w-full shadow-[0_40px_80px_rgba(6,64,90,0.3)]">
+               <div className="flex flex-col md:flex-row items-center justify-between gap-2 w-full">
+                  
+                  <div onClick={scrollToSanctuaries} className="flex-1 flex max-md:w-full items-center gap-5 hover:bg-sand-light p-4 md:px-8 rounded-2xl md:rounded-full cursor-pointer transition-colors group">
+                    <Calendar className="text-terracotta w-6 h-6 group-hover:scale-110 transition-transform" />
+                    <div className="text-left flex-1">
+                      <p className="text-[9px] text-sapphire/50 uppercase tracking-[0.2em] font-bold mb-1">Itinerary</p>
+                      <p className="text-sm font-bold text-sapphire tracking-wide">Select Dates</p>
+                    </div>
+                    <ChevronDown className="text-sapphire/30 w-4 h-4" />
+                  </div>
+                  
+                  <div className="hidden md:block w-px h-12 bg-sapphire/10"></div>
 
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 1.1 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-3 border border-primary/50 bg-background/50 backdrop-blur-sm text-primary px-10 py-4 rounded-full hover:bg-primary hover:text-secondary transition-all shadow-[0_0_20px_rgba(227,200,171,0.1)] group text-sm tracking-widest uppercase font-medium"
-          >
-            Explore Options
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </motion.button>
+                  <div onClick={scrollToSanctuaries} className="flex-1 flex max-md:w-full items-center gap-5 hover:bg-sand-light p-4 md:px-8 rounded-2xl md:rounded-full cursor-pointer transition-colors group">
+                    <Users className="text-terracotta w-6 h-6 group-hover:scale-110 transition-transform" />
+                    <div className="text-left flex-1">
+                      <p className="text-[9px] text-sapphire/50 uppercase tracking-[0.2em] font-bold mb-1">Target Class</p>
+                      <p className="text-sm font-bold text-sapphire tracking-wide">Guests & Rooms</p>
+                    </div>
+                    <ChevronDown className="text-sapphire/30 w-4 h-4" />
+                  </div>
+
+                  <button onClick={scrollToSanctuaries} className="bg-sapphire text-white px-10 py-5 rounded-2xl md:rounded-full font-bold uppercase tracking-[0.2em] text-[10px] hover:bg-turquoise transition-all duration-500 max-md:w-full max-md:mt-2 shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                    Check Availability
+                  </button>
+               </div>
+            </div>
+          </motion.div>
         </div>
-      </main>
-    </div>
+      </section>
+
+      {/* Featured Properties (Panoramic Off-Grid Layout) */}
+      <section id="sanctuaries" className="pt-24 pb-40 bg-sand-light relative z-20 overflow-hidden">
+        <div className="container mx-auto px-6 md:px-12">
+          
+          <div className="max-w-4xl mb-32 md:pl-12">
+            <motion.h2 
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 1 }}
+              className="text-6xl md:text-8xl font-serif text-sapphire font-light tracking-tighter mb-10"
+            >
+              A Tactile Haven
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 1, delay: 0.3 }}
+              className="text-xl md:text-2xl text-sapphire/70 leading-relaxed font-light max-w-2xl"
+            >
+              Designed as a seamless extension of the coastal lifestyle, Talé brings together curated service and uninterrupted views of the Red Sea.
+            </motion.p>
+          </div>
+
+          <div className="md:pl-12 mb-20 flex flex-wrap gap-4 uppercase tracking-[0.2em] text-[10px] font-bold">
+            {["All Suites", "Signature Suite", "Ocean Villa", "Penthouse", "Alpine Chalet", "Standard Room"].map(cat => (
+               <button 
+                 key={cat} 
+                 onClick={() => setActiveCategory(cat)}
+                 className={`px-6 md:px-8 py-3.5 rounded-full transition-all border ${activeCategory === cat ? 'bg-sapphire text-white border-sapphire shadow-[0_10px_30px_rgba(6,64,90,0.3)]' : 'bg-transparent text-sapphire/40 border-sapphire/20 hover:border-sapphire/40 hover:text-sapphire'}`}
+               >
+                 {cat}
+               </button>
+            ))}
+          </div>
+
+          <motion.div layout className="relative flex flex-col gap-24 md:gap-40 items-center w-full">
+            {isLoading && (
+              <div className="w-full py-32 flex flex-col items-center justify-center">
+                <Loader2 className="w-10 h-10 text-sapphire animate-spin mb-4" />
+                <p className="text-[10px] font-bold tracking-[0.2em] uppercase text-sapphire/40">Syncing with Talé Backend...</p>
+              </div>
+            )}
+            {!isLoading && properties.length === 0 && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full py-32 text-center text-sapphire/60 font-medium text-xl">
+                No luxurious sanctuaries matching "<span className="text-terracotta">{activeCategory}</span>" have been published yet.
+              </motion.div>
+            )}
+
+            <AnimatePresence mode="popLayout">
+            {properties.map((prop, i) => (
+              <motion.div 
+                layout
+                key={prop._id}
+                onClick={() => router.push(`/properties/${prop._id}`)}
+                initial={{ opacity: 0, y: 80 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                exit={{ opacity: 0, scale: 0.95, filter: "blur(10px)" }}
+                transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+                className={`group cursor-pointer w-full flex flex-col md:flex-row items-center gap-10 md:gap-20 ${
+                  i % 2 === 1 ? "md:flex-row-reverse" : ""
+                }`}
+              >
+                {/* Breathtaking Magazine Fluid Image Frame */}
+                <div className="w-full md:w-7/12 relative min-h-[400px] md:h-[600px] overflow-hidden rounded-[2.5rem] md:rounded-[4rem] shadow-2xl shadow-sapphire/10">
+                  <Image 
+                    src={prop.images && prop.images[0] ? prop.images[0] : "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80"} 
+                    alt={prop.name} 
+                    fill 
+                    className="object-cover transition-transform duration-[2.5s] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]" 
+                  />
+                  <div className="absolute inset-0 bg-sapphire/10 group-hover:bg-transparent transition-colors duration-1000 mix-blend-multiply" />
+                  
+                  {prop.isOccupiedToday && (
+                     <div className="absolute top-8 left-8 z-20 bg-white/95 backdrop-blur-md px-6 py-3 rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.2)] flex items-center gap-3">
+                        <span className="w-2.5 h-2.5 rounded-full bg-terracotta animate-pulse" />
+                        <span className="text-[9px] font-bold uppercase tracking-[0.25em] text-sapphire">Private Party Occupied</span>
+                     </div>
+                  )}
+                </div>
+                
+                {/* Elevated Text Content Block */}
+                <div className="w-full md:w-5/12 flex flex-col items-start px-2 md:px-0">
+                  <div className="flex items-center gap-4 mb-6 md:mb-10">
+                    <span className="px-5 py-2 rounded-full border border-sapphire/10 text-[9px] uppercase tracking-widest font-bold text-sapphire/50">
+                      {prop.roomType || "Signature Suite"}
+                    </span>
+                    <span className="text-[10px] uppercase tracking-widest font-bold text-sapphire/40 flex items-center gap-2">
+                      <Users className="w-3.5 h-3.5 text-sapphire/30" /> Up to {prop.capacity || 2} Guests
+                    </span>
+                  </div>
+
+                  <h3 className="text-4xl md:text-5xl lg:text-6xl font-serif text-sapphire font-light mb-6 leading-[1.1] tracking-tight group-hover:text-turquoise transition-colors duration-500">
+                    {prop.name}
+                  </h3>
+                  
+                  <p className="text-sapphire/60 text-sm md:text-base leading-[1.8] font-light mb-12 line-clamp-4">
+                    {prop.description || "Designed as a seamless extension of the coastal lifestyle, bridging curated personal service with purely uninterrupted views of the Red Sea."}
+                  </p>
+                  
+                  <div className="flex items-end justify-between w-full border-t border-sapphire/10 pt-8 mt-auto">
+                     <div>
+                       <p className="text-[9px] uppercase tracking-widest text-sapphire/40 font-bold mb-1">Starting Rate</p>
+                       <p className="text-2xl font-serif text-sapphire">{prop.basePrice} <span className="text-xs font-sans uppercase tracking-[0.2em] text-sapphire/40 ml-1">EGP</span></p>
+                     </div>
+                     <div className="flex items-center gap-4 text-[10px] font-bold tracking-[0.2em] uppercase text-sapphire group-hover:text-turquoise transition-colors duration-500">
+                        Explore Sanctuary
+                        <span className="w-12 h-12 rounded-full border border-sapphire/10 flex items-center justify-center group-hover:border-turquoise group-hover:bg-turquoise group-hover:text-white transition-all duration-500 shadow-sm"><ArrowRight className="w-4 h-4" /></span>
+                     </div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+            </AnimatePresence>
+          </motion.div>
+        </div>
+      </section>
+      
+      {/* Signature Experience */}
+      <section className="py-40 bg-white relative">
+        <div className="container mx-auto px-6 md:px-12 flex flex-col md:flex-row items-center gap-20">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.2 }}
+            className="md:w-5/12 relative aspect-[4/5] rounded-[3rem] overflow-hidden shadow-2xl"
+          >
+             <Image 
+                src="https://images.unsplash.com/photo-1540541338287-41700207dee6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80" 
+                fill 
+                alt="Signature Experience" 
+                className="object-cover" 
+              />
+          </motion.div>
+          <div className="md:w-7/12">
+            <h2 className="text-5xl md:text-7xl font-serif text-sapphire font-light mb-10 tracking-tight leading-tight">
+              Every stay is <br/> a signature.
+            </h2>
+            <p className="text-xl text-sapphire/70 mb-12 font-light leading-relaxed max-w-xl">
+              Whether for a weekend retreat or an annual escape, we ensure a pristine canvas for your most memorable moments by the sea.
+            </p>
+            <ul className="space-y-6">
+               {["Uninterrupted Panoramic Views", "Curated Personal Service", "Rhythmic Ocean Design"].map((item, i) => (
+                  <motion.li 
+                    key={item}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.2, duration: 0.8 }}
+                    className="flex items-center gap-6 text-sapphire font-medium tracking-wide text-lg"
+                  >
+                    <CheckCircle2 className="w-6 h-6 text-turquoise" />
+                    {item}
+                  </motion.li>
+               ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+    </motion.div>
   );
 }

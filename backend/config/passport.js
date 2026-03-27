@@ -10,7 +10,7 @@ passport.use(
     {
       clientID: process.env.GOOGLE_CLIENT_ID || 'placeholder',
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || 'placeholder',
-      callbackURL: '/api/auth/google/callback',
+      callbackURL: 'http://localhost:5000/api/auth/google/callback',
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
@@ -19,11 +19,13 @@ passport.use(
           user = await User.findOne({ email: profile.emails[0].value });
           if (user) {
             user.googleId = profile.id;
+            user.avatar = user.avatar || (profile.photos && profile.photos[0] ? profile.photos[0].value : "");
             await user.save();
           } else {
             user = await User.create({
               name: profile.displayName,
               email: profile.emails[0].value,
+              avatar: profile.photos && profile.photos[0] ? profile.photos[0].value : "",
               googleId: profile.id,
               role: 'Guest'
             });
