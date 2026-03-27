@@ -112,7 +112,8 @@ export default function GuestPortal() {
     setUploadingAvatar(true);
 
     try {
-      const sigRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/media/signature`);
+      // Securely passing the target destination folder to retrieve a perfectly matching hash
+      const sigRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/media/signature?folder=tale_avatars`);
       const { timestamp, signature, cloudName, apiKey } = await sigRes.json();
 
       const uploadData = new FormData();

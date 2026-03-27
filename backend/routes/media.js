@@ -11,16 +11,26 @@ cloudinary.config({
 
 // @route   GET /api/media/signature
 // @desc    Get Cloudinary signature for secure frontend uploads (Skill execution)
-// @access  Admin
+// @access  Admin / Guest
 router.get('/signature', (req, res) => {
   try {
     const timestamp = Math.round(new Date().getTime() / 1000);
+    // Dynamically retrieve the targeted destination folder or default to Properties
+    const targetFolder = req.query.folder || 'tale_properties';
+    
     // As per SKILL.md: Ensure authorized users use Signed Uploads extensively
     const signature = cloudinary.utils.api_sign_request(
-      { timestamp, folder: 'tale_properties' },
+      { timestamp, folder: targetFolder },
       cloudinary.config().api_secret
     );
-    res.json({ timestamp, signature, cloudName: cloudinary.config().cloud_name, apiKey: cloudinary.config().api_key });
+    
+    res.json({ 
+      timestamp, 
+      signature, 
+      cloudName: cloudinary.config().cloud_name, 
+      apiKey: cloudinary.config().api_key,
+      folder: targetFolder 
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
