@@ -23,7 +23,7 @@ export default function PropertyDetails() {
   const [bookedDates, setBookedDates] = useState<string[]>([]);
   useEffect(() => {
     if(!id) return;
-    fetch(`http://localhost:5000/api/inventory/booked-dates/${id}`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/inventory/booked-dates/${id}`)
       .then(res => res.json())
       .then(data => setBookedDates(data || []))
       .catch(console.error);
@@ -271,7 +271,7 @@ export default function PropertyDetails() {
                 onClick={async () => {
                   setIsProcessing(true);
                   try {
-                    const req = await fetch("http://localhost:5000/api/payment/checkout", {
+                    const req = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/payment/checkout`, {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({

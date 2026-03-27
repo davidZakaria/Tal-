@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const passport = require('passport');
+const User = require('./models/User');
 
 // Load env vars
 dotenv.config();
@@ -40,8 +41,26 @@ const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/tale';
 
 mongoose.connect(MONGO_URI)
-  .then(() => {
+  .then(async () => {
     console.log('MongoDB connected successfully.');
+    
+    // Auto-Bootstrap Master Admin for New Device Clones (GitHub Resilience)
+    try {
+      const adminCount = await User.countDocuments({ role: 'Admin' });
+      if (adminCount === 0) {
+        const admin = new User({
+          email: 'admin@tale.com',
+          password: 'password123',
+          name: 'Talé Administrator',
+          role: 'Admin'
+        });
+        await admin.save();
+        console.log('[TALÉ SECURE] Bootstrap Engine: Master Admin generated for fresh environment.');
+      }
+    } catch (e) {
+      console.log('[TALÉ SECURE] Bootstrap Engine Alert:', e.message);
+    }
+
     app.listen(PORT, () => console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`));
   })
   .catch(err => {

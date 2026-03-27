@@ -28,7 +28,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setIsLoggingIn(true);
     setLoginError("");
     try {
-      const resp = await fetch('http://localhost:5000/api/auth/login', {
+      const resp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })

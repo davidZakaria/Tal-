@@ -65,7 +65,7 @@ export default function AdminProperties() {
     setIsDeleting(id);
     try {
       const token = localStorage.getItem('adminToken');
-      const res = await fetch(`http://localhost:5000/api/properties/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/properties/${id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -90,7 +90,7 @@ export default function AdminProperties() {
 
     try {
       // 1. Fetch encrypted Cloudinary Signature from our Express SKILL implementation
-      const sigRes = await fetch("http://localhost:5000/api/media/signature");
+      const sigRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/media/signature`);
       const { timestamp, signature, cloudName, apiKey } = await sigRes.json();
 
       // 2. Safely bounce user's image straight to Cloudinary bypasses node.js max limits
@@ -126,7 +126,7 @@ export default function AdminProperties() {
     try {
       const token = localStorage.getItem('adminToken');
       const method = editingId ? "PUT" : "POST";
-      const url = editingId ? `http://localhost:5000/api/properties/${editingId}` : "http://localhost:5000/api/properties";
+      const url = editingId ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/properties/${editingId}` : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/properties`;
       
       const res = await fetch(url, {
         method,

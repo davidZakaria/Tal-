@@ -24,7 +24,7 @@ export default function AdminReservations() {
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
-    fetch("http://localhost:5000/api/inventory/reservations", {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/inventory/reservations`, {
       headers: { "Authorization": `Bearer ${token}` }
     })
       .then(res => {
@@ -45,7 +45,7 @@ export default function AdminReservations() {
     if (!confirm("Are you completely certain you want to forcefully bypass PayMob and manually Mark as Paid for this property?")) return;
     try {
       const token = localStorage.getItem('adminToken');
-      const resp = await fetch(`http://localhost:5000/api/inventory/reservations/${id}/confirm`, {
+      const resp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/inventory/reservations/${id}/confirm`, {
         method: 'PATCH',
         headers: { "Authorization": `Bearer ${token}` }
       });

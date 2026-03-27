@@ -51,8 +51,8 @@ export default function GuestPortal() {
   const fetchDashboard = async (authToken: string) => {
     try {
       const [resProfile, resLedger] = await Promise.all([
-         fetch("http://localhost:5000/api/auth/profile", { headers: { "Authorization": `Bearer ${authToken}` } }),
-         fetch("http://localhost:5000/api/inventory/my-reservations", { headers: { "Authorization": `Bearer ${authToken}` } })
+         fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/auth/profile`, { headers: { "Authorization": `Bearer ${authToken}` } }),
+         fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/inventory/my-reservations`, { headers: { "Authorization": `Bearer ${authToken}` } })
       ]);
       
       if (!resProfile.ok) throw new Error("Auth block");
@@ -81,7 +81,7 @@ export default function GuestPortal() {
     
     const endpoint = isLogin ? "login" : "register";
     try {
-      const res = await fetch(`http://localhost:5000/api/auth/${endpoint}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/auth/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(isLogin ? { email, password } : { name, email, password })
@@ -102,7 +102,7 @@ export default function GuestPortal() {
   };
 
   const handleOAuth = (provider: 'google' | 'facebook') => {
-    window.location.href = `http://localhost:5000/api/auth/${provider}`;
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/auth/${provider}`;
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -112,7 +112,7 @@ export default function GuestPortal() {
     setUploadingAvatar(true);
 
     try {
-      const sigRes = await fetch("http://localhost:5000/api/media/signature");
+      const sigRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/media/signature`);
       const { timestamp, signature, cloudName, apiKey } = await sigRes.json();
 
       const uploadData = new FormData();
@@ -142,7 +142,7 @@ export default function GuestPortal() {
     e.preventDefault();
     setIsUpdating(true);
     try {
-      const res = await fetch("http://localhost:5000/api/auth/profile", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/auth/profile`, {
          method: "PUT",
          headers: { 
             "Content-Type": "application/json",
