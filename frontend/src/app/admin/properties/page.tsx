@@ -3,9 +3,10 @@
 import { motion } from "framer-motion";
 import { Plus, Image as ImageIcon, Loader2 } from "lucide-react";
 import { useState, useRef } from "react";
-import { useProperties } from "@/hooks/useProperties";
+import { useProperties, type Property } from "@/hooks/useProperties";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
+import { apiUrl } from "@/lib/api";
 
 export default function AdminProperties() {
   const { data: properties, isLoading } = useProperties();
@@ -45,7 +46,7 @@ export default function AdminProperties() {
     setPreviewImage(null);
   };
 
-  const handleEditClick = (prop: any) => {
+  const handleEditClick = (prop: Property) => {
     setEditingId(prop._id);
     setFormData({
       name: prop.name,
@@ -65,7 +66,7 @@ export default function AdminProperties() {
     setIsDeleting(id);
     try {
       const token = localStorage.getItem('adminToken');
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/properties/${id}`, {
+      const res = await fetch(apiUrl(`/api/properties/${id}`), {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -73,7 +74,7 @@ export default function AdminProperties() {
       
       await queryClient.invalidateQueries({ queryKey: ["properties"] });
       if (editingId === id) resetForm();
-    } catch (err) {
+    } catch {
       alert("Failed to destroy configuration structure.");
     } finally {
       setIsDeleting(null);
@@ -90,7 +91,7 @@ export default function AdminProperties() {
 
     try {
       // 1. Fetch encrypted Cloudinary Signature from our Express SKILL implementation
-      const sigRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/media/signature`);
+      const sigRes = await fetch(apiUrl("/api/media/signature"));
       const { timestamp, signature, cloudName, apiKey } = await sigRes.json();
 
       // 2. Safely bounce user's image straight to Cloudinary bypasses node.js max limits
@@ -126,7 +127,7 @@ export default function AdminProperties() {
     try {
       const token = localStorage.getItem('adminToken');
       const method = editingId ? "PUT" : "POST";
-      const url = editingId ? `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/properties/${editingId}` : `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/properties`;
+      const url = editingId ? apiUrl(`/api/properties/${editingId}`) : apiUrl("/api/properties");
       
       const res = await fetch(url, {
         method,
@@ -146,7 +147,7 @@ export default function AdminProperties() {
       
       await queryClient.invalidateQueries({ queryKey: ["properties"] });
       resetForm();
-    } catch (error) {
+    } catch {
       alert("Failed to save to database.");
     } finally {
       setIsPublishing(false);
@@ -235,7 +236,7 @@ export default function AdminProperties() {
                >
                  {previewImage ? (
                    <>
-                     <Image src={previewImage} alt="Preview" fill className="object-cover opacity-60 group-hover:opacity-30 transition-opacity" />
+                     <Image src={previewImage} alt="Preview" fill sizes="(max-width: 768px) 100vw, 50vw" className="object-cover opacity-60 group-hover:opacity-30 transition-opacity" />
                      {uploading && (
                        <div className="absolute inset-0 bg-sapphire/50 flex flex-col justify-center items-center text-white backdrop-blur-sm z-10 transition-all">
                          <Loader2 className="w-10 h-10 animate-spin mb-4" />
@@ -288,7 +289,7 @@ export default function AdminProperties() {
           >
             <div className="relative h-64 w-full bg-sand-light overflow-hidden">
                {prop.images?.length > 0 ? (
-                  <Image src={prop.images[0]} alt={prop.name} fill className="object-cover group-hover:scale-110 transition-transform duration-1000 ease-out" />
+                  <Image src={prop.images[0]} alt={prop.name} fill sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover group-hover:scale-110 transition-transform duration-1000 ease-out" />
                ) : (
                   <div className="absolute inset-0 flex items-center justify-center text-sapphire/20"><ImageIcon className="w-12 h-12" /></div>
                )}

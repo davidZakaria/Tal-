@@ -1,34 +1,86 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 const Reservation = require('../models/Reservation');
 const { sendConfirmationEmail } = require('../utils/emailService');
+const { getJwtSecret } = require('../config/jwt');
 
 // Polyfill fetch for older Node versions
 const fetchAPI = typeof fetch !== 'undefined' ? fetch : require('node-fetch');
+
+/**
+ * When Authorization: Bearer <guest JWT> is sent, bind the reservation to that user
+ * so /api/inventory/my-reservations shows it in the guest portal.
+ * Returns null if res was already sent (401/403).
+ */
+async function resolveGuestForCheckout(req, res) {
+  const fallback = {
+    userId: undefined,
+    guestName: req.body.guestName || 'Tale Luxury Guest',
+    guestEmail: req.body.guestEmail || 'guest@talehotel.com',
+    guestPhone: req.body.guestPhone || '+20123456789',
+  };
+
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith('Bearer ')) {
+    return fallback;
+  }
+
+  try {
+    const token = header.split(' ')[1];
+    const decoded = jwt.verify(token, getJwtSecret());
+    const user = await User.findById(decoded.id).select('name email role');
+    if (!user) {
+      res.status(401).json({ message: 'Invalid session. Please sign in again from the guest portal.' });
+      return null;
+    }
+    if (user.role !== 'Guest') {
+      res.status(403).json({ message: 'Admin accounts cannot use guest checkout here.' });
+      return null;
+    }
+    return {
+      userId: user._id,
+      guestName: user.name || fallback.guestName,
+      guestEmail: user.email,
+      guestPhone: req.body.guestPhone || fallback.guestPhone,
+    };
+  } catch {
+    res.status(401).json({ message: 'Session expired. Please sign in again from the guest portal.' });
+    return null;
+  }
+}
 
 // ==========================================
 // 1. GENERATE PAYMOB IFRAME SECURE CHECKOUT
 // ==========================================
 router.post('/checkout', async (req, res) => {
   try {
-    const { amountEGP, propertyId, guests, arrival, departure } = req.body;
-    
+    const { amountEGP, propertyId, arrival, departure } = req.body;
+
     if (!process.env.PAYMOB_API_KEY) {
-      return res.status(400).json({ error: "PAYMOB_API_KEY is not configured in backend setup." });
+      return res.status(400).json({ error: 'PAYMOB_API_KEY is not configured in backend setup.' });
     }
 
-    // -- Database Step 0: Create Pending Reservation --
+    const guestInfo = await resolveGuestForCheckout(req, res);
+    if (guestInfo === null) return;
+
     const pendingReservation = await Reservation.create({
-      guestName: req.body.guestName || "Tale Luxury Guest",
-      guestEmail: req.body.guestEmail || "guest@talehotel.com",
-      guestPhone: req.body.guestPhone || "+20123456789",
+      userId: guestInfo.userId,
+      guestName: guestInfo.guestName,
+      guestEmail: guestInfo.guestEmail,
+      guestPhone: guestInfo.guestPhone,
       propertyId,
       checkInDate: arrival,
       checkOutDate: departure,
       totalPrice: amountEGP,
-      status: 'Pending'
+      status: 'Pending',
     });
+
+    const nameParts = (guestInfo.guestName || 'Guest').trim().split(/\s+/);
+    const billingFirst = nameParts[0] || 'Guest';
+    const billingLast = nameParts.slice(1).join(' ') || 'Tale';
 
     // -- PayMob Step 1: Authentication --
     const authReq = await fetchAPI("https://accept.paymob.com/api/auth/tokens", {
@@ -76,9 +128,18 @@ router.post('/checkout', async (req, res) => {
         currency: "EGP",
         integration_id: process.env.PAYMOB_INTEGRATION_ID || "12345", // Mock integration if none exists
         billing_data: {
-          first_name: "Tale", last_name: "Guest", phone_number: "+20123456789", 
-          email: "guest@tale.com", apartment: "NA", floor: "NA", 
-          street: "NA", building: "NA", city: "NA", country: "EG", state: "NA"
+          first_name: billingFirst,
+          last_name: billingLast,
+          phone_number: String(guestInfo.guestPhone || '')
+            .replace(/\s/g, '') || '+20123456789',
+          email: guestInfo.guestEmail,
+          apartment: 'NA',
+          floor: 'NA',
+          street: 'NA',
+          building: 'NA',
+          city: 'NA',
+          country: 'EG',
+          state: 'NA',
         }
       })
     });

@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
-export default function OAuthSuccess() {
+function OAuthSuccessInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -22,7 +22,21 @@ export default function OAuthSuccess() {
     <div className="min-h-screen bg-sapphire flex flex-col items-center justify-center text-white">
       <Loader2 className="w-12 h-12 animate-spin text-turquoise mb-6" />
       <h1 className="text-2xl font-serif tracking-widest uppercase">Authenticating Identity Pipeline</h1>
-      <p className="text-[10px] tracking-[0.2em] uppercase mt-2 text-white/50">Securely routing payload into User Portal...</p>
+      <p className="text-xs tracking-[0.2em] uppercase mt-2 text-white/50">Securely routing payload into User Portal...</p>
     </div>
+  );
+}
+
+export default function OAuthSuccess() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-sapphire flex flex-col items-center justify-center text-white">
+          <Loader2 className="w-12 h-12 animate-spin text-turquoise mb-6" />
+        </div>
+      }
+    >
+      <OAuthSuccessInner />
+    </Suspense>
   );
 }

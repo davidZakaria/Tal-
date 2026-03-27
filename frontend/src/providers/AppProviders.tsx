@@ -7,6 +7,10 @@ import { useState, ReactNode, useEffect } from 'react';
 import { store } from '@/store';
 import { initializeAuth } from '@/store/slices/authSlice';
 
+/**
+ * Redux holds client auth mirror (localStorage sync); TanStack Query owns server state (properties, etc.).
+ * Prefer Query for API caches; use Redux only for auth slice patterns that already depend on the store.
+ */
 export default function AppProviders({ children }: { children: ReactNode }) {
   // Initialize QueryClient to prevent hydration errors across renders
   const [queryClient] = useState(() => new QueryClient({

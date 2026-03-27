@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search, Filter, MoreVertical, CreditCard, Clock, XCircle, Calendar, MessageSquare } from "lucide-react";
+import { apiUrl } from "@/lib/api";
 
 interface Reservation {
   _id: string;
@@ -24,7 +25,7 @@ export default function AdminReservations() {
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/inventory/reservations`, {
+    fetch(apiUrl("/api/inventory/reservations"), {
       headers: { "Authorization": `Bearer ${token}` }
     })
       .then(res => {
@@ -45,7 +46,7 @@ export default function AdminReservations() {
     if (!confirm("Are you completely certain you want to forcefully bypass PayMob and manually Mark as Paid for this property?")) return;
     try {
       const token = localStorage.getItem('adminToken');
-      const resp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/inventory/reservations/${id}/confirm`, {
+      const resp = await fetch(apiUrl(`/api/inventory/reservations/${id}/confirm`), {
         method: 'PATCH',
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -121,16 +122,29 @@ export default function AdminReservations() {
             </thead>
             <tbody className="divide-y divide-sapphire/5">
               {loading ? (
-                <tr>
-                  <td colSpan={5} className="py-20 text-center">
-                    <div className="flex flex-col items-center justify-center">
-                      <div className="w-8 h-8 relative mb-4">
-                         <div className="absolute inset-0 rounded-full border-t-2 border-sapphire animate-spin"></div>
-                      </div>
-                      <span className="text-xs uppercase tracking-[0.2em] font-bold text-sapphire/40">Syncing Master Database</span>
-                    </div>
-                  </td>
-                </tr>
+                <>
+                  {[1, 2, 3, 4, 5].map((row) => (
+                    <tr key={row} className="animate-pulse border-b border-sapphire/5">
+                      <td className="px-8 py-6">
+                        <div className="h-4 w-32 bg-sand/50 rounded mb-2" />
+                        <div className="h-3 w-48 bg-sand/40 rounded" />
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="h-4 w-40 bg-sand/50 rounded mb-2" />
+                        <div className="h-3 w-36 bg-sand/40 rounded" />
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="h-4 w-24 bg-sand/50 rounded" />
+                      </td>
+                      <td className="px-8 py-6">
+                        <div className="h-8 w-20 bg-sand/40 rounded-full" />
+                      </td>
+                      <td className="px-8 py-6 text-right">
+                        <div className="h-8 w-24 bg-sand/40 rounded-full ml-auto" />
+                      </td>
+                    </tr>
+                  ))}
+                </>
               ) : reservations.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-24 text-center">

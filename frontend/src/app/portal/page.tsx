@@ -1,13 +1,34 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { motion } from "framer-motion";
-import { UserCircle, KeyRound, Mail, ArrowRight, Loader2, Calendar as CalendarIcon, MapPin, Coffee, ArrowLeft, Image as ImageIcon, Settings, Luggage, Camera, Check } from "lucide-react";
+import { UserCircle, KeyRound, Mail, ArrowRight, Loader2, Calendar as CalendarIcon, MapPin, Coffee, ArrowLeft, Settings, Luggage, Camera, Check } from "lucide-react";
 import Link from "next/link";
+import { apiUrl } from "@/lib/api";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 
-export default function GuestPortal() {
+interface GuestProfile {
+  name?: string;
+  email?: string;
+  avatar?: string;
+}
+
+interface ReservationCard {
+  _id: string;
+  status: string;
+  checkInDate: string;
+  checkOutDate: string;
+  totalPrice: number;
+  paymentGatewayReference?: string;
+  propertyId?: {
+    name?: string;
+    roomType?: string;
+    images?: string[];
+  };
+}
+
+function GuestPortalInner() {
   const searchParams = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
   const [token, setToken] = useState<string | null>(null);
@@ -21,8 +42,8 @@ export default function GuestPortal() {
 
   // Dashboard State
   const [activeTab, setActiveTab] = useState<'journeys' | 'profile'>('journeys');
-  const [reservations, setReservations] = useState<any[]>([]);
-  const [profile, setProfile] = useState<any>(null);
+  const [reservations, setReservations] = useState<ReservationCard[]>([]);
+  const [profile, setProfile] = useState<GuestProfile | null>(null);
   const [fetchingData, setFetchingData] = useState(true);
 
   // Profile Update State
@@ -51,14 +72,14 @@ export default function GuestPortal() {
   const fetchDashboard = async (authToken: string) => {
     try {
       const [resProfile, resLedger] = await Promise.all([
-         fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/auth/profile`, { headers: { "Authorization": `Bearer ${authToken}` } }),
-         fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/inventory/my-reservations`, { headers: { "Authorization": `Bearer ${authToken}` } })
+         fetch(apiUrl("/api/auth/profile"), { headers: { "Authorization": `Bearer ${authToken}` } }),
+         fetch(apiUrl("/api/inventory/my-reservations"), { headers: { "Authorization": `Bearer ${authToken}` } })
       ]);
       
       if (!resProfile.ok) throw new Error("Auth block");
       
-      const profData = await resProfile.json();
-      const legData = await resLedger.json();
+      const profData = (await resProfile.json()) as GuestProfile;
+      const legData = (await resLedger.json()) as ReservationCard[];
       
       setProfile(profData);
       setEditName(profData.name || "");
@@ -66,7 +87,7 @@ export default function GuestPortal() {
       setAvatarPreview(profData.avatar || "");
       
       setReservations(legData);
-    } catch (err) {
+    } catch {
       localStorage.removeItem('guestToken');
       setToken(null);
     } finally {
@@ -81,7 +102,7 @@ export default function GuestPortal() {
     
     const endpoint = isLogin ? "login" : "register";
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/auth/${endpoint}`, {
+      const res = await fetch(apiUrl(`/api/auth/${endpoint}`), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(isLogin ? { email, password } : { name, email, password })
@@ -95,14 +116,14 @@ export default function GuestPortal() {
       } else {
         setErrorMsg(data.message);
       }
-    } catch (err) {
+    } catch {
       setErrorMsg("Mainframe currently unreachable.");
     }
     setIsLoading(false);
   };
 
   const handleOAuth = (provider: 'google' | 'facebook') => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/auth/${provider}`;
+    window.location.href = apiUrl(`/api/auth/${provider}`);
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -113,7 +134,7 @@ export default function GuestPortal() {
 
     try {
       // Securely passing the target destination folder to retrieve a perfectly matching hash
-      const sigRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/media/signature?folder=tale_avatars`);
+      const sigRes = await fetch(`${apiUrl("/api/media/signature")}?folder=tale_avatars`);
       const { timestamp, signature, cloudName, apiKey } = await sigRes.json();
 
       const uploadData = new FormData();
@@ -131,9 +152,9 @@ export default function GuestPortal() {
       if (!uploadRes.ok) throw new Error("Upload Failed");
       const finalData = await uploadRes.json();
       setAvatarPreview(finalData.secure_url);
-    } catch (error) {
+    } catch {
       alert("Cloudinary Upload Failed. Check API configuration.");
-      setAvatarPreview(profile.avatar || null);
+      setAvatarPreview(profile?.avatar ?? null);
     } finally {
       setUploadingAvatar(false);
     }
@@ -143,7 +164,7 @@ export default function GuestPortal() {
     e.preventDefault();
     setIsUpdating(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/auth/profile`, {
+      const res = await fetch(apiUrl("/api/auth/profile"), {
          method: "PUT",
          headers: { 
             "Content-Type": "application/json",
@@ -157,11 +178,11 @@ export default function GuestPortal() {
          })
       });
       if (!res.ok) throw new Error("Update rejected");
-      const updatedProfile = await res.json();
+      const updatedProfile = (await res.json()) as GuestProfile;
       setProfile(updatedProfile);
       setEditPassword("");
       alert("Profile Successfully Updated!");
-    } catch(err) {
+    } catch {
       alert("Failed to update profile configurations.");
     } finally {
       setIsUpdating(false);
@@ -259,7 +280,7 @@ export default function GuestPortal() {
             <div className="flex items-center gap-6">
                <div className="w-24 h-24 rounded-full border-4 border-white/20 overflow-hidden relative shadow-2xl bg-sapphire">
                   {profile?.avatar ? (
-                     <Image src={profile.avatar} alt="Avatar" fill className="object-cover" />
+                     <Image src={profile.avatar} alt="Avatar" fill sizes="96px" className="object-cover" />
                   ) : (
                      <UserCircle className="w-full h-full text-sand-light/50 p-2" />
                   )}
@@ -291,9 +312,20 @@ export default function GuestPortal() {
        <div className="max-w-7xl mx-auto px-6 md:px-20">
          
          {fetchingData ? (
-            <div className="bg-white p-20 rounded-[3rem] shadow-2xl border border-sapphire/5 text-center flex flex-col items-center">
-               <Loader2 className="w-12 h-12 animate-spin text-sapphire/20 mb-6" />
-               <p className="text-xs font-bold uppercase tracking-[0.2em] text-sapphire/40">Decrypting Ledgers...</p>
+            <div className="bg-white p-10 md:p-14 rounded-[3rem] shadow-2xl border border-sapphire/5 animate-pulse space-y-8" aria-busy="true" aria-label="Loading guest data">
+               <div className="flex flex-col md:flex-row gap-8">
+                  <div className="h-48 w-48 rounded-full bg-sand/60 mx-auto md:mx-0" />
+                  <div className="flex-1 space-y-4 pt-4">
+                     <div className="h-4 w-40 bg-sand/40 rounded" />
+                     <div className="h-10 w-full max-w-md bg-sand/50 rounded-xl" />
+                     <div className="h-10 w-full max-w-sm bg-sand/40 rounded-xl" />
+                  </div>
+               </div>
+               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {[1, 2, 3].map((k) => (
+                     <div key={k} className="h-56 rounded-[2rem] bg-sand/40" />
+                  ))}
+               </div>
             </div>
          ) : activeTab === 'profile' ? (
             
@@ -322,7 +354,7 @@ export default function GuestPortal() {
                      <div onClick={() => fileInputRef.current?.click()} className="flex-1 min-h-[250px] bg-sand-light/30 border-2 border-dashed border-sapphire/20 rounded-[2rem] flex flex-col items-center justify-center text-sapphire/40 hover:bg-sand-light/60 transition-all cursor-pointer relative overflow-hidden group">
                         {avatarPreview ? (
                            <>
-                              <Image src={avatarPreview} alt="Avatar Preview" fill className="object-cover opacity-60 group-hover:opacity-30 transition-opacity" />
+                              <Image src={avatarPreview} alt="Avatar Preview" fill sizes="(max-width: 768px) 100vw, 480px" className="object-cover opacity-60 group-hover:opacity-30 transition-opacity" />
                               {uploadingAvatar && <Loader2 className="w-10 h-10 animate-spin absolute z-10 text-white" />}
                               {!uploadingAvatar && <Camera className="w-10 h-10 absolute z-10 opacity-0 group-hover:opacity-100 text-sapphire" />}
                            </>
@@ -363,7 +395,7 @@ export default function GuestPortal() {
                {reservations.map((res, i) => (
                  <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i*0.1 }} key={res._id} className="bg-white rounded-[2.5rem] shadow-xl shadow-sapphire/5 border border-sapphire/5 overflow-hidden group">
                    <div className="relative aspect-video w-full bg-sand-light overflow-hidden">
-                     <Image src={res.propertyId?.images?.[0] || "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2"} alt="Suite" fill className="object-cover group-hover:scale-105 transition-transform duration-1000" />
+                     <Image src={res.propertyId?.images?.[0] || "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2"} alt="Suite" fill sizes="(max-width: 1024px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-1000" />
                      <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full shadow-lg">
                         <span className={`text-[9px] font-bold uppercase tracking-widest ${res.status === 'Confirmed' ? 'text-emerald-600' : 'text-amber-500'}`}>{res.status}</span>
                      </div>
@@ -403,5 +435,19 @@ export default function GuestPortal() {
          )}
        </div>
     </div>
+  );
+}
+
+export default function GuestPortal() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-sand-light flex items-center justify-center">
+          <Loader2 className="w-10 h-10 animate-spin text-sapphire" />
+        </div>
+      }
+    >
+      <GuestPortalInner />
+    </Suspense>
   );
 }

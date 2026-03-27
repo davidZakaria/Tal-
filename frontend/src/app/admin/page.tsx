@@ -3,13 +3,22 @@
 import { motion } from "framer-motion";
 import { TrendingUp, Users, CalendarCheck, CreditCard } from "lucide-react";
 import { useState, useEffect } from "react";
+import { apiUrl } from "@/lib/api";
+
+type LedgerReservation = {
+  _id: string;
+  status: string;
+  totalPrice: number;
+  guestName?: string;
+  propertyId?: { name?: string };
+};
 
 export default function AdminDashboard() {
-  const [reservations, setReservations] = useState<any[]>([]);
+  const [reservations, setReservations] = useState<LedgerReservation[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/inventory/reservations`, {
+    fetch(apiUrl("/api/inventory/reservations"), {
       headers: { "Authorization": `Bearer ${token}` }
     })
       .then(res => {
@@ -82,7 +91,7 @@ export default function AdminDashboard() {
             {reservations.slice(0, 5).map((res) => (
               <div key={res._id} className="flex justify-between items-center p-5 hover:bg-sand-light/50 rounded-2xl transition-colors cursor-pointer border border-transparent hover:border-sapphire/5 group">
                 <div>
-                  <p className="font-semibold text-sapphire text-sm mb-1 group-hover:text-turquoise transition-colors">{res.guestName}</p>
+                  <p className="font-semibold text-sapphire text-sm mb-1 group-hover:text-turquoise transition-colors">{res.guestName ?? "Guest"}</p>
                   <p className="text-[10px] uppercase tracking-widest text-sapphire/50 font-medium truncate w-40">{res.propertyId?.name || "Unknown Suite"}</p>
                 </div>
                 <div className="text-right">

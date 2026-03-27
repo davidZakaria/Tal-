@@ -2,11 +2,20 @@ const express = require('express');
 const router = express.Router();
 const cloudinary = require('cloudinary').v2;
 
-// Configure via environment variables ideally
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+const apiKey = process.env.CLOUDINARY_API_KEY;
+const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+if (process.env.NODE_ENV === 'production') {
+  if (!cloudName || !apiKey || !apiSecret) {
+    throw new Error('CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET are required in production');
+  }
+}
+
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'tale_hotel',
-  api_key: process.env.CLOUDINARY_API_KEY || 'test_key',
-  api_secret: process.env.CLOUDINARY_API_SECRET || 'test_secret',
+  cloud_name: cloudName || 'tale_hotel',
+  api_key: apiKey || 'test_key',
+  api_secret: apiSecret || 'test_secret',
 });
 
 // @route   GET /api/media/signature

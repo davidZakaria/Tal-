@@ -4,14 +4,36 @@ const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const passport = require('passport');
 const User = require('./models/User');
+const { getJwtSecret } = require('./config/jwt');
 
 // Load env vars
 dotenv.config();
 
+if (process.env.NODE_ENV === 'production') {
+  try {
+    getJwtSecret();
+  } catch (e) {
+    console.error(e.message);
+    process.exit(1);
+  }
+  if (!process.env.CORS_ORIGIN) {
+    console.error('CORS_ORIGIN must be set in production (comma-separated allowed origins).');
+    process.exit(1);
+  }
+}
+
 const app = express();
 
-// Middleware
-app.use(cors());
+const corsOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean)
+  : ['http://localhost:3000'];
+
+app.use(
+  cors({
+    origin: corsOrigins,
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -44,21 +66,24 @@ mongoose.connect(MONGO_URI)
   .then(async () => {
     console.log('MongoDB connected successfully.');
     
-    // Auto-Bootstrap Master Admin for New Device Clones (GitHub Resilience)
+    // Dev-only bootstrap when ADMIN_BOOTSTRAP_EMAIL + ADMIN_BOOTSTRAP_PASSWORD are set (never in production)
     try {
-      const adminCount = await User.countDocuments({ role: 'Admin' });
-      if (adminCount === 0) {
-        const admin = new User({
-          email: 'admin@tale.com',
-          password: 'password123',
-          name: 'Talé Administrator',
-          role: 'Admin'
-        });
-        await admin.save();
-        console.log('[TALÉ SECURE] Bootstrap Engine: Master Admin generated for fresh environment.');
+      if (process.env.NODE_ENV !== 'production') {
+        const adminCount = await User.countDocuments({ role: 'Admin' });
+        const bootEmail = process.env.ADMIN_BOOTSTRAP_EMAIL;
+        const bootPassword = process.env.ADMIN_BOOTSTRAP_PASSWORD;
+        if (adminCount === 0 && bootEmail && bootPassword) {
+          await User.create({
+            email: bootEmail,
+            password: bootPassword,
+            name: 'Talé Administrator',
+            role: 'Admin',
+          });
+          console.log('[TALÉ] Dev bootstrap: admin user created from ADMIN_BOOTSTRAP_* env vars.');
+        }
       }
     } catch (e) {
-      console.log('[TALÉ SECURE] Bootstrap Engine Alert:', e.message);
+      console.log('[TALÉ] Admin bootstrap skipped:', e.message);
     }
 
     app.listen(PORT, () => console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`));

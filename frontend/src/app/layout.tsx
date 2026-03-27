@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import AppProviders from "@/providers/AppProviders";
 import Footer from "@/components/Footer";
@@ -14,10 +14,32 @@ const playfair = Playfair_Display({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  /** Single value avoids edge cases in some browsers / devtools with multi-entry theme-color. */
+  themeColor: "#fbf8f5",
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
   title: "Talé Hotel | Galala City - Red Sea",
-  description: "Talé Hotel introduces a tailored hospitality experience at the heart of Galala city. Designed as a seamless extension of the coastal lifestyle, bringing together hotel comfort, curated service, and uninterrupted views of the Red Sea.",
+  description:
+    "Talé Hotel introduces a tailored hospitality experience at the heart of Galala city. Designed as a seamless extension of the coastal lifestyle, bringing together hotel comfort, curated service, and uninterrupted views of the Red Sea.",
   keywords: ["Talé Hotel", "Galala City", "Red Sea", "Luxury Hotel", "Coastal Retreat", "Hospitality"],
+  openGraph: {
+    title: "Talé Hotel | Galala City - Red Sea",
+    description:
+      "Coastal luxury in Galala City — curated service and Red Sea views.",
+    type: "website",
+    locale: "en_US",
+    siteName: "Talé Hotel",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Talé Hotel | Galala City - Red Sea",
+    description:
+      "Coastal luxury in Galala City — curated service and Red Sea views.",
+  },
 };
 
 export default function RootLayout({

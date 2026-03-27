@@ -1,18 +1,26 @@
 @import "tailwindcss";
 
+/* Do not set global scroll-behavior: smooth — it interacts badly with scroll-linked
+   animations (e.g. Framer Motion + useScroll) and can spike CPU/GPU in dev. Use
+   scrollIntoView({ behavior: "smooth" }) only where needed. */
+
 :root {
   --color-sand-light: #fbf8f5; 
   --color-sand: #e3c8ab; 
   --color-terracotta: #cca68f; /* Muted terracotta */
   --color-sapphire: #06405a; 
+  --color-sapphire-dark: #03202e; /* Footer & deep surfaces */
   --color-turquoise: #8cd0d7; 
 }
+
+/* Type scale reference: body 16px; labels use text-xs (12px) minimum on touch UIs */
 
 @theme inline {
   --color-sand-light: var(--color-sand-light);
   --color-sand: var(--color-sand);
   --color-terracotta: var(--color-terracotta);
   --color-sapphire: var(--color-sapphire);
+  --color-sapphire-dark: var(--color-sapphire-dark);
   --color-turquoise: var(--color-turquoise);
   
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -25,6 +33,18 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Focus: visible rings for keyboard users (Tailwind focus-visible:ring-* also used in components) */
+:focus-visible {
+  outline: 2px solid var(--color-turquoise);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-safe\:transform-none {
+    transform: none !important;
+  }
 }
 
 /* Hide scrollbar for deeply immersive feel but keep functionality */

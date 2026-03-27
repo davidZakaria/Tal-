@@ -5,10 +5,13 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { protect } = require('../middleware/authMiddleware');
+const { getJwtSecret } = require('../config/jwt');
 
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || 'tale-secret-jwt', { expiresIn: '30d' });
+  return jwt.sign({ id }, getJwtSecret(), { expiresIn: '30d' });
 };
+
+const frontendBaseUrl = () => process.env.FRONTEND_URL || 'http://localhost:3000';
 
 // @route   POST /api/auth/register
 // @desc    Register a new user
@@ -115,7 +118,7 @@ router.get(
   (req, res) => {
     const token = generateToken(req.user._id);
     // Adjust frontend URL redirect as needed
-    res.redirect(`http://localhost:3000/auth/success?token=${token}`);
+    res.redirect(`${frontendBaseUrl()}/auth/success?token=${token}`);
   }
 );
 
@@ -128,7 +131,7 @@ router.get(
   passport.authenticate('facebook', { session: false, failureRedirect: '/login' }),
   (req, res) => {
     const token = generateToken(req.user._id);
-    res.redirect(`http://localhost:3000/auth/success?token=${token}`);
+    res.redirect(`${frontendBaseUrl()}/auth/success?token=${token}`);
   }
 );
 

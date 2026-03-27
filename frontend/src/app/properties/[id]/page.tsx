@@ -1,11 +1,13 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { useProperty } from "@/hooks/useProperties";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { ArrowLeft, Wifi, Wind, Coffee, Bed, Bath, Waves, Loader2, Calendar, AlertCircle } from "lucide-react";
+import { ArrowLeft, Wifi, Wind, Coffee, Bed, Bath, Waves, Loader2, Calendar, AlertCircle, type LucideIcon } from "lucide-react";
 import { useState, useEffect } from "react";
+import { apiUrl } from "@/lib/api";
 
 export default function PropertyDetails() {
   const params = useParams();
@@ -18,12 +20,18 @@ export default function PropertyDetails() {
   const [departureDate, setDepartureDate] = useState("");
   const [guests, setGuests] = useState(2);
   const [isProcessing, setIsProcessing] = useState(false);
-  
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [guestToken, setGuestToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    setGuestToken(typeof window !== "undefined" ? localStorage.getItem("guestToken") : null);
+  }, []);
+
   // Anti-Collision Calendar Logic
   const [bookedDates, setBookedDates] = useState<string[]>([]);
   useEffect(() => {
     if(!id) return;
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/inventory/booked-dates/${id}`)
+    fetch(apiUrl(`/api/inventory/booked-dates/${id}`))
       .then(res => res.json())
       .then(data => setBookedDates(data || []))
       .catch(console.error);
@@ -31,7 +39,7 @@ export default function PropertyDetails() {
 
   const checkConflict = () => {
     if (!arrivalDate || !departureDate) return false;
-    let curr = new Date(arrivalDate);
+    const curr = new Date(arrivalDate);
     const last = new Date(departureDate);
 
     if (curr > last) return true; // Safety logic reverse-date block
@@ -78,6 +86,11 @@ export default function PropertyDetails() {
 
   const totalPrice = property.basePrice * nights;
 
+  const checkoutHeaders: Record<string, string> = { "Content-Type": "application/json" };
+  if (guestToken) {
+    checkoutHeaders.Authorization = `Bearer ${guestToken}`;
+  }
+
   return (
     <div className="min-h-screen bg-sand-light pb-32">
       {/* Immersive Panoramic Header */}
@@ -87,6 +100,7 @@ export default function PropertyDetails() {
             src={property.images[0]} 
             alt={property.name} 
             fill 
+            sizes="100vw"
             className="object-cover"
             priority
           />
@@ -133,7 +147,7 @@ export default function PropertyDetails() {
             {property.amenities && property.amenities.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-8 text-sapphire">
                 {property.amenities.map((amenity: string, idx: number) => {
-                   const AMENITY_ICONS: Record<string, any> = {
+                   const AMENITY_ICONS: Record<string, LucideIcon> = {
                      "High-Speed Fiber": Wifi,
                      "Red Sea View": Waves,
                      "Climate Control": Wind,
@@ -240,6 +254,23 @@ export default function PropertyDetails() {
                 </select>
               </div>
 
+              {guestToken ? (
+                <p className="text-xs leading-relaxed text-sapphire/80 bg-turquoise/10 border border-turquoise/25 rounded-2xl px-4 py-3">
+                  You are signed in. This reservation will show in your{" "}
+                  <strong className="text-sapphire">Guest portal</strong> under Travel Portfolio (use the same email as your account).
+                </p>
+              ) : (
+                <p className="text-xs text-sapphire/55">
+                  <Link
+                    href="/portal"
+                    className="font-semibold text-terracotta underline-offset-2 hover:underline"
+                  >
+                    Sign in to the guest portal
+                  </Link>{" "}
+                  first so we can attach this booking to your account.
+                </p>
+              )}
+
               {/* Conflict Alert Panel */}
               {hasConflict && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="bg-red-50 text-red-600 p-4 rounded-2xl border border-red-100 flex items-start gap-3 mt-4">
@@ -270,10 +301,11 @@ export default function PropertyDetails() {
                 disabled={isProcessing || !arrivalDate || !departureDate || hasConflict}
                 onClick={async () => {
                   setIsProcessing(true);
+                  setPaymentError(null);
                   try {
-                    const req = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/payment/checkout`, {
+                    const payReq = await fetch(apiUrl("/api/payment/checkout"), {
                       method: "POST",
-                      headers: { "Content-Type": "application/json" },
+                      headers: checkoutHeaders,
                       body: JSON.stringify({
                         propertyId: id,
                         amountEGP: Math.round(totalPrice * 1.14),
@@ -282,15 +314,25 @@ export default function PropertyDetails() {
                         departure: departureDate
                       })
                     });
-                    const res = await req.json();
-                    if(res.iframe_url) {
-                      window.location.href = res.iframe_url; // Direct redirection to secure PayMob frame
+                    const data = await payReq.json();
+                    if (!payReq.ok) {
+                      setPaymentError(
+                        data.message || data.error || "Checkout could not be started."
+                      );
+                      setIsProcessing(false);
+                      return;
+                    }
+                    if (data.iframe_url) {
+                      window.location.href = data.iframe_url;
                     } else {
-                      alert("Configure PayMob credentials in the backend .env to generate live checkouts!");
+                      setPaymentError(
+                        data.message ||
+                          "Configure PayMob credentials in the backend .env to generate live checkouts."
+                      );
                       setIsProcessing(false);
                     }
-                  } catch (e) {
-                    alert("Checkout transmission failed.");
+                  } catch {
+                    setPaymentError("Checkout could not be started. Check your connection and try again.");
                     setIsProcessing(false);
                   }
                 }}
@@ -301,6 +343,11 @@ export default function PropertyDetails() {
                 {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : (!hasConflict && <Calendar className="w-4 h-4 group-hover:animate-pulse" />)} 
                 {hasConflict ? "DATES OCCUPIED" : isProcessing ? "INITIALIZING PAYMOB..." : "RESERVE SUITE"}
               </button>
+              {paymentError && (
+                <p className="mt-3 text-sm text-red-600 text-center" role="alert">
+                  {paymentError}
+                </p>
+              )}
             </div>
           </motion.div>
         </div>

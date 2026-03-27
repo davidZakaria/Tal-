@@ -47,8 +47,10 @@ router.get('/booked-dates/:propertyId', async (req, res) => {
 // @access  Private (Guests)
 router.get('/my-reservations', protect, async (req, res) => {
   try {
-    // We intelligently use `req.user.email` allowing anonymous guest checkouts to flawlessly bind to identical accounts created later!
-    const reservations = await Reservation.find({ guestEmail: req.user.email })
+    // Match by email and/or linked user id (checkout with Bearer token sets userId).
+    const reservations = await Reservation.find({
+      $or: [{ guestEmail: req.user.email }, { userId: req.user._id }],
+    })
       .populate('propertyId', 'name roomType images basePrice')
       .sort({ createdAt: -1 });
     res.json(reservations);

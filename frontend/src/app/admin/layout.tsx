@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { LayoutDashboard, Home, CalendarDays, ReceiptText, LogOut, LockKeyhole, Loader2 } from "lucide-react";
+import { LayoutDashboard, Home, ReceiptText, LogOut, LockKeyhole, Loader2 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { apiUrl } from "@/lib/api";
+import Input from "@/components/ui/Input";
+import Button from "@/components/ui/Button";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -12,15 +15,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
   
-  const [email, setEmail] = useState("admin@tale.com");
-  const [password, setPassword] = useState("password123");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    if (token) setIsAuthenticated(true);
-    setIsChecking(false);
+    queueMicrotask(() => {
+      const token = localStorage.getItem("adminToken");
+      setIsAuthenticated(!!token);
+      setIsChecking(false);
+    });
   }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -28,7 +33,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setIsLoggingIn(true);
     setLoginError("");
     try {
-      const resp = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000"}/api/auth/login`, {
+      const resp = await fetch(apiUrl("/api/auth/login"), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
@@ -40,7 +45,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       } else {
         setLoginError(data.message || "Unauthorized access explicitly denied.");
       }
-    } catch (err) {
+    } catch {
       setLoginError("MongoDB Authentication Server unreachable.");
     }
     setIsLoggingIn(false);
@@ -66,21 +71,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white/10 backdrop-blur-xl p-12 rounded-[3rem] border border-white/10 shadow-2xl w-full max-w-md relative z-10 text-center">
           <LockKeyhole className="w-12 h-12 text-sand-light mx-auto mb-6 opacity-80" />
           <h1 className="text-3xl font-serif text-white tracking-widest mb-2">Talé Access</h1>
-          <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-turquoise mb-10">Restricted Admin Payload</p>
+          <p className="text-xs uppercase font-bold tracking-[0.2em] text-turquoise mb-10">Restricted Admin Payload</p>
           
           <form onSubmit={handleLogin} className="space-y-6">
-            <input 
-              type="email" placeholder="Admin Encrypted Email" value={email} onChange={e => setEmail(e.target.value)} required
-              className="w-full bg-sapphire/50 text-white border border-white/10 rounded-full px-6 py-4 text-xs font-bold tracking-widest placeholder-white/30 focus:outline-none focus:border-turquoise text-center"
+            <Input
+              type="email"
+              placeholder="Admin email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="username"
             />
-            <input 
-              type="password" placeholder="Terminal Passkey" value={password} onChange={e => setPassword(e.target.value)} required
-              className="w-full bg-sapphire/50 text-white border border-white/10 rounded-full px-6 py-4 text-xs font-bold tracking-widest placeholder-white/30 focus:outline-none focus:border-turquoise text-center"
+            <Input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete="current-password"
             />
-            {loginError && <p className="text-red-400 text-[10px] uppercase font-bold tracking-widest">{loginError}</p>}
-            <button type="submit" disabled={isLoggingIn} className="w-full bg-turquoise text-sapphire hover:bg-white px-6 py-4 rounded-full text-xs font-bold uppercase tracking-[0.2em] transition-all flex justify-center shadow-[0_0_20px_rgba(48,197,210,0.3)]">
+            {loginError && <p className="text-red-400 text-xs font-bold tracking-widest" role="alert">{loginError}</p>}
+            <Button type="submit" disabled={isLoggingIn} className="w-full !bg-turquoise !text-sapphire hover:!bg-white shadow-[0_0_20px_rgba(48,197,210,0.3)]">
               {isLoggingIn ? <Loader2 className="w-4 h-4 animate-spin" /> : "Authenticate Identity"}
-            </button>
+            </Button>
           </form>
         </motion.div>
       </div>
