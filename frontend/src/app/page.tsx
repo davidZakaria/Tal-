@@ -46,7 +46,12 @@ export default function Home() {
         }`}
       >
         <div className="container mx-auto px-6 md:px-12 flex justify-between items-center">
-          <div className="relative flex items-center h-12 w-28 md:w-36">
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="relative flex items-center h-12 w-28 md:w-36"
+          >
             <Image
               src="/logo.png"
               alt="Talé Hotel"
@@ -54,13 +59,34 @@ export default function Home() {
               className="object-contain object-left"
               priority
             />
-          </div>
+          </motion.div>
           
-          <button onClick={() => router.push('/portal')} className={`px-8 py-3.5 font-bold text-[10px] tracking-[0.2em] uppercase transition-all duration-500 rounded-full ${
-            isScrolled ? "bg-sapphire text-white hover:bg-turquoise hover:shadow-lg" : "bg-white/10 backdrop-blur-sm border border-white/20 text-white hover:bg-white hover:text-sapphire"
+          {/* Centered Rhythmic Navigation Links */}
+          <div className="hidden md:flex items-center gap-10 absolute left-1/2 -translate-x-1/2">
+             {["Sanctuaries", "Dining", "Wellness", "Experiences"].map((link, i) => (
+               <motion.a 
+                 key={link}
+                 href={`#${link.toLowerCase()}`}
+                 initial={{ opacity: 0, y: -20 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 transition={{ delay: 0.2 + (i * 0.1), duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                 className={`text-[9px] uppercase tracking-[0.25em] font-bold cursor-pointer transition-all duration-500 hover:text-turquoise ${isScrolled ? 'text-sapphire/70' : 'text-white/80'}`}
+               >
+                 {link}
+               </motion.a>
+             ))}
+          </div>
+
+          <motion.button 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.6, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            onClick={() => router.push('/portal')} 
+            className={`px-8 py-3.5 font-bold text-[10px] tracking-[0.2em] uppercase transition-all duration-500 rounded-full ${
+            isScrolled ? "bg-sapphire text-white hover:bg-turquoise hover:shadow-lg" : "bg-white/10 backdrop-blur-sm border border-white/30 text-white hover:bg-white hover:text-sapphire"
           }`}>
             Guest Portal
-          </button>
+          </motion.button>
         </div>
       </nav>
 
@@ -80,22 +106,42 @@ export default function Home() {
           />
         </motion.div>
 
-        {/* Hero Content & Typography */}
-        <div className="relative z-10 container mx-auto px-6 flex flex-col items-center justify-center h-full text-center text-white mt-12">
+        {/* Wave-like Rhythmic Hero Content & Typography */}
+        <div className="relative z-10 container mx-auto px-6 flex flex-col items-center justify-center h-full text-center text-white mt-12 pointer-events-none">
           
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1.5, delay: 0.2, ease: "easeOut" }}
-            className="flex flex-col items-center"
-          >
-            <p className="text-xs md:text-sm font-semibold tracking-[0.4em] uppercase mb-6 text-sand drop-shadow-sm">
+          <div className="flex flex-col items-center">
+            <motion.p 
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1.2, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              className="text-[9px] md:text-xs font-bold tracking-[0.4em] uppercase mb-8 text-sand drop-shadow-md"
+            >
               Galala City • Red Sea
-            </p>
-            <h1 className="text-7xl md:text-[9rem] font-serif font-light tracking-tighter mb-10 drop-shadow-2xl leading-none">
-              Soul of <br/> a Resort.
+            </motion.p>
+            
+            <h1 className="text-7xl md:text-[10rem] font-serif font-light tracking-tighter mb-10 drop-shadow-2xl leading-[0.9] flex flex-col items-center">
+               <span className="overflow-hidden block pb-2">
+                  <motion.span 
+                    initial={{ y: "110%" }} 
+                    animate={{ y: 0 }} 
+                    transition={{ duration: 1.4, delay: 0.1, ease: [0.22, 1, 0.36, 1] }} 
+                    className="block"
+                  >
+                    Soul of
+                  </motion.span>
+               </span>
+               <span className="overflow-hidden block pb-4">
+                  <motion.span 
+                    initial={{ y: "110%" }} 
+                    animate={{ y: 0 }} 
+                    transition={{ duration: 1.4, delay: 0.3, ease: [0.22, 1, 0.36, 1] }} 
+                    className="block text-sand-light italic pr-4"
+                  >
+                    a Resort.
+                  </motion.span>
+               </span>
             </h1>
-          </motion.div>
+          </div>
 
           {/* Bright Tactical Booking Widget connected to internal Scroll Anchor */}
           <motion.div 
