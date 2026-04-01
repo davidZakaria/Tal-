@@ -1,0 +1,17 @@
+# MongoDB for local development (Compass is only a GUI — you still need a running server).
+# From the project root: docker compose up -d
+# Then start the API (backend): npm.cmd run dev  or  backend\dev.cmd
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - tale_mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: tale_hotel
+
+volumes:
+  tale_mongo_data:

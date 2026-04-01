@@ -12,6 +12,7 @@ export interface Property {
   capacity: number;
   images: string[];
   isOccupiedToday?: boolean;
+  openForBooking?: boolean;
 }
 
 export function useProperties() {
@@ -38,5 +39,22 @@ export function useProperty(id: string) {
       return response.json();
     },
     enabled: !!id,
+  });
+}
+
+/** All properties including closed-for-booking; requires admin token in localStorage */
+export function useAdminProperties() {
+  return useQuery<Property[], Error>({
+    queryKey: ['properties', 'admin'],
+    queryFn: async () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
+      const response = await fetch(apiUrl('/api/properties/manage/all'), {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch properties for admin');
+      }
+      return response.json();
+    },
   });
 }

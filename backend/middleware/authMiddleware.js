@@ -31,4 +31,12 @@ const admin = (req, res, next) => {
   }
 };
 
-module.exports = { protect, admin };
+const guestOnly = (req, res, next) => {
+  if (req.user && req.user.role === 'Guest') {
+    next();
+  } else {
+    res.status(403).json({ message: 'Guest account required' });
+  }
+};
+
+module.exports = { protect, admin, guestOnly };

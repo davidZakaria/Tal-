@@ -8,6 +8,7 @@ const propertySchema = new mongoose.Schema({
   amenities: [{ type: String }],
   capacity: { type: Number, required: true },
   images: [{ type: String }], // Cloudinary URLs
+  openForBooking: { type: Boolean, default: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Property', propertySchema);

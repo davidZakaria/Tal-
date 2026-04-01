@@ -2,15 +2,16 @@
 
 import Link from "next/link";
 import { LayoutDashboard, Home, ReceiptText, LogOut, LockKeyhole, Loader2 } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { apiUrl } from "@/lib/api";
+import { apiUrl, describeApiBase } from "@/lib/api";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
@@ -38,15 +39,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password })
       });
-      const data = await resp.json();
+      const raw = await resp.text();
+      let data: { message?: string; role?: string; token?: string } = {};
+      if (raw) {
+        try {
+          data = JSON.parse(raw);
+        } catch {
+          setLoginError(
+            `The API returned a non-JSON response (HTTP ${resp.status}). Usually the backend is not running on port 5000 or the Next.js proxy failed — start it with: npm.cmd run dev (in backend). (${describeApiBase()})`
+          );
+          setIsLoggingIn(false);
+          return;
+        }
+      }
       if (resp.ok && data.role === 'Admin') {
-        localStorage.setItem('adminToken', data.token);
+        localStorage.setItem('adminToken', data.token!);
         setIsAuthenticated(true);
+        router.replace("/admin");
       } else {
-        setLoginError(data.message || "Unauthorized access explicitly denied.");
+        setLoginError(
+          data.message ||
+            (resp.status === 401 || resp.status === 403
+              ? "Unauthorized access explicitly denied."
+              : `Request failed (HTTP ${resp.status}).`)
+        );
       }
     } catch {
-      setLoginError("MongoDB Authentication Server unreachable.");
+      setLoginError(
+        `Cannot reach the API (${describeApiBase()}). Start the backend (npm run dev in backend, port 5000). If you set NEXT_PUBLIC_API_URL, restart Next.js after changing it.`
+      );
     }
     setIsLoggingIn(false);
   };

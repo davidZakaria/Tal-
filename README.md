@@ -5,7 +5,14 @@ Hotel booking stack: **Express + MongoDB** API and **Next.js** (App Router) fron
 ## Prerequisites
 
 - Node.js 18+ (global `fetch` for utility scripts)
-- MongoDB
+- **MongoDB running locally** (or [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) — paste `MONGO_URI` into `backend/.env`)
+
+**MongoDB Compass** is only a database *client*. It does **not** start the database server. You need either:
+
+1. **Docker (simplest):** install [Docker Desktop](https://docs.docker.com/desktop/install/windows-installer/), then from the project root run **`start-mongodb.cmd`** or `docker compose up -d`. That starts MongoDB on `127.0.0.1:27017`.
+2. **MongoDB Community Server:** install from [mongodb.com/try/download/community](https://www.mongodb.com/try/download/community), then ensure the **MongoDB** Windows service is **Running** (Services app or `net start MongoDB`).
+
+After MongoDB is up, start the backend; you should see `MongoDB connected successfully.` in the terminal.
 
 ## Environment variables
 
@@ -13,7 +20,8 @@ Hotel booking stack: **Express + MongoDB** API and **Next.js** (App Router) fron
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `MONGO_URI` | No | Default `mongodb://localhost:27017/tale` |
+| `MONGO_URI` | No | Default `mongodb://127.0.0.1:27017/tale` (Atlas: `mongodb+srv://…`) |
+| `PORT` / `BIND_HOST` | No | Default port **5000**, bind **127.0.0.1** in development (**0.0.0.0** in production) |
 | `JWT_SECRET` | **Yes in production** | Random string, **32+ characters** |
 | `CORS_ORIGIN` | **Yes in production** | Comma-separated allowed origins (e.g. `https://app.example.com`) |
 | `FRONTEND_URL` | No | OAuth redirect base (default `http://localhost:3000`) |
@@ -39,6 +47,8 @@ npm run create-admin
 | `NEXT_PUBLIC_API_URL` | Backend base URL (default `http://localhost:5000`) |
 
 ## Run locally
+
+**Windows PowerShell:** if `npm` fails with *running scripts is disabled*, use `npm.cmd run dev` or run `dev.cmd` from the `backend` folder (starts nodemon without `npm.ps1`). If **port 5000 is already in use**, stop the other process or set `PORT=5001` in `backend/.env` and set `BACKEND_URL=http://127.0.0.1:5001` in `frontend/.env.local`.
 
 Terminal 1 — API:
 

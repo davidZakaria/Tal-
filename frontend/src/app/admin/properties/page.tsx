@@ -3,13 +3,13 @@
 import { motion } from "framer-motion";
 import { Plus, Image as ImageIcon, Loader2 } from "lucide-react";
 import { useState, useRef } from "react";
-import { useProperties, type Property } from "@/hooks/useProperties";
+import { useAdminProperties, type Property } from "@/hooks/useProperties";
 import { useQueryClient } from "@tanstack/react-query";
 import Image from "next/image";
 import { apiUrl } from "@/lib/api";
 
 export default function AdminProperties() {
-  const { data: properties, isLoading } = useProperties();
+  const { data: properties, isLoading } = useAdminProperties();
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -21,7 +21,8 @@ export default function AdminProperties() {
 
   const [formData, setFormData] = useState({ 
     name: "", basePrice: "", capacity: "", description: "", 
-    roomType: "Signature Suite", amenities: [] as string[] 
+    roomType: "Signature Suite", amenities: [] as string[],
+    openForBooking: true,
   });
   const [isPublishing, setIsPublishing] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
@@ -42,7 +43,7 @@ export default function AdminProperties() {
   const resetForm = () => {
     setIsAdding(false);
     setEditingId(null);
-    setFormData({ name: "", basePrice: "", capacity: "", description: "", roomType: "Signature Suite", amenities: [] });
+    setFormData({ name: "", basePrice: "", capacity: "", description: "", roomType: "Signature Suite", amenities: [], openForBooking: true });
     setPreviewImage(null);
   };
 
@@ -54,7 +55,8 @@ export default function AdminProperties() {
       capacity: prop.capacity?.toString() || "2",
       description: prop.description || "",
       roomType: prop.roomType || "Signature Suite",
-      amenities: prop.amenities || []
+      amenities: prop.amenities || [],
+      openForBooking: prop.openForBooking !== false,
     });
     setPreviewImage(prop.images?.[0] || null);
     setIsAdding(true);
@@ -139,7 +141,8 @@ export default function AdminProperties() {
           description: formData.description,
           images: previewImage ? [previewImage] : [],
           roomType: formData.roomType,
-          amenities: formData.amenities
+          amenities: formData.amenities,
+          openForBooking: formData.openForBooking,
         })
       });
       
@@ -215,6 +218,29 @@ export default function AdminProperties() {
               <div>
                 <label className="block text-[10px] uppercase tracking-[0.2em] text-sapphire/60 font-bold mb-3">Description</label>
                 <textarea value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} className="w-full bg-sand-light/50 border border-sapphire/10 rounded-2xl px-6 py-4 text-sapphire font-medium focus:outline-none focus:border-turquoise transition-all min-h-[140px]" placeholder="Captivating views from the private terrace..." />
+              </div>
+
+              <div className="flex items-center gap-4 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, openForBooking: !formData.openForBooking })}
+                  className={`relative inline-flex h-9 w-16 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors ${
+                    formData.openForBooking ? "bg-emerald-500" : "bg-sapphire/20"
+                  }`}
+                  aria-pressed={formData.openForBooking}
+                >
+                  <span
+                    className={`pointer-events-none inline-block h-8 w-8 transform rounded-full bg-white shadow ring-0 transition ${
+                      formData.openForBooking ? "translate-x-7" : "translate-x-0.5"
+                    }`}
+                  />
+                </button>
+                <div>
+                  <p className="text-sm font-semibold text-sapphire">Open for booking</p>
+                  <p className="text-[10px] text-sapphire/50 uppercase tracking-widest">
+                    Guests can request reservations only when enabled
+                  </p>
+                </div>
               </div>
             </div>
             
@@ -297,7 +323,12 @@ export default function AdminProperties() {
             
             <div className="p-8">
                <h3 className="text-2xl font-serif text-sapphire font-light mb-2">{prop.name}</h3>
-               <p className="text-terracotta text-[10px] uppercase tracking-widest font-bold mb-4">{prop.roomType}</p>
+               <div className="flex flex-wrap items-center gap-2 mb-4">
+                 <p className="text-terracotta text-[10px] uppercase tracking-widest font-bold">{prop.roomType}</p>
+                 {prop.openForBooking === false && (
+                   <span className="text-[9px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">Closed</span>
+                 )}
+               </div>
                <p className="text-sapphire/60 text-sm mb-8 leading-relaxed line-clamp-2">{prop.description || "No description provided."}</p>
                
                <div className="flex justify-between items-center pt-6 border-t border-sapphire/10">

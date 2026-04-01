@@ -30,14 +30,15 @@ export default function AdminDashboard() {
   }, []);
 
   const totalRevenue = reservations.filter(r => r.status === 'Confirmed').reduce((sum, r) => sum + r.totalPrice, 0);
-  const pendingPayments = reservations.filter(r => r.status === 'Pending').length;
+  const pendingApprovals = reservations.filter(r => r.status === 'PendingApproval').length;
+  const awaitingPayment = reservations.filter(r => r.status === 'ApprovedAwaitingPayment').length;
   const activeBookings = reservations.filter(r => r.status === 'Confirmed').length;
 
   const stats = [
     { title: "Verified Revenue", value: `${totalRevenue.toLocaleString()} EGP`, trend: "LIVE ENGINE", icon: TrendingUp },
     { title: "Confirmed Bookings", value: `${activeBookings}`, trend: "LIVE ENGINE", icon: Users },
     { title: "Global Volume", value: "98%", trend: "HIGH DEMAND", icon: CalendarCheck },
-    { title: "Pending Ledgers", value: `${pendingPayments}`, trend: "ACTION REQ", icon: CreditCard },
+    { title: "Awaiting approval / pay", value: `${pendingApprovals} / ${awaitingPayment}`, trend: "ACTION REQ", icon: CreditCard },
   ];
 
   return (
@@ -96,7 +97,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-bold text-sapphire mb-1">{res.totalPrice.toLocaleString()} EGP</p>
-                  <p className={`text-[9px] uppercase tracking-widest font-bold ${res.status === 'Confirmed' ? 'text-emerald-600' : 'text-amber-500'}`}>{res.status}</p>
+                  <p className={`text-[9px] uppercase tracking-widest font-bold ${res.status === 'Confirmed' ? 'text-emerald-600' : 'text-amber-500'}`}>{res.status === 'PendingApproval' ? 'Awaiting approval' : res.status === 'ApprovedAwaitingPayment' ? 'Awaiting payment' : res.status}</p>
                 </div>
               </div>
             ))}

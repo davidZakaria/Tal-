@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useRef, Suspense } from "react";
 import { motion } from "framer-motion";
-import { UserCircle, KeyRound, Mail, ArrowRight, Loader2, Calendar as CalendarIcon, MapPin, Coffee, ArrowLeft, Settings, Luggage, Camera, Check } from "lucide-react";
+import { UserCircle, KeyRound, Mail, ArrowRight, Loader2, Calendar as CalendarIcon, MapPin, Coffee, ArrowLeft, Settings, Luggage, Camera, Check, CreditCard } from "lucide-react";
 import Link from "next/link";
 import { apiUrl } from "@/lib/api";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { guestSignInUrl, sanitizeReturnPath, shouldRedirectGuestToSignIn } from "@/lib/guestReturnTo";
 
 interface GuestProfile {
   name?: string;
@@ -16,7 +17,9 @@ interface GuestProfile {
 
 interface ReservationCard {
   _id: string;
+  bookingCode?: string;
   status: string;
+  paymentStatus?: string;
   checkInDate: string;
   checkOutDate: string;
   totalPrice: number;
@@ -30,6 +33,8 @@ interface ReservationCard {
 
 function GuestPortalInner() {
   const searchParams = useSearchParams();
+  const pathname = usePathname() || "";
+  const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
   const [token, setToken] = useState<string | null>(null);
   
@@ -53,6 +58,7 @@ function GuestPortalInner() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [payingId, setPayingId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -110,6 +116,11 @@ function GuestPortalInner() {
       const data = await res.json();
       if (res.ok) {
         localStorage.setItem('guestToken', data.token);
+        const returnTo = sanitizeReturnPath(searchParams.get("returnTo"));
+        if (returnTo) {
+          router.replace(returnTo);
+          return;
+        }
         setToken(data.token);
         setFetchingData(true);
         fetchDashboard(data.token);
@@ -122,8 +133,11 @@ function GuestPortalInner() {
     setIsLoading(false);
   };
 
-  const handleOAuth = (provider: 'google' | 'facebook') => {
-    window.location.href = apiUrl(`/api/auth/${provider}`);
+  const handleGoogleOAuth = () => {
+    const rt = sanitizeReturnPath(searchParams.get("returnTo"));
+    if (rt) sessionStorage.setItem("guestReturnTo", rt);
+    else sessionStorage.removeItem("guestReturnTo");
+    window.location.href = apiUrl("/api/auth/google");
   };
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -194,6 +208,56 @@ function GuestPortalInner() {
     setToken(null);
   };
 
+  const handlePayReservation = async (reservationId: string) => {
+    if (!token) return;
+    setPayingId(reservationId);
+    try {
+      const payRes = await fetch(apiUrl("/api/payment/checkout"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ reservationId }),
+      });
+      const data = await payRes.json();
+      if (!payRes.ok) {
+        if (shouldRedirectGuestToSignIn(payRes, data)) {
+          router.push(guestSignInUrl(pathname));
+          return;
+        }
+        alert(data.message || data.error || "Payment could not be started.");
+        return;
+      }
+      if (data.iframe_url) {
+        window.location.href = data.iframe_url;
+      } else {
+        alert(data.message || "Configure PayMob in the backend to enable checkout.");
+      }
+    } catch {
+      alert("Payment could not be started. Check your connection.");
+    } finally {
+      setPayingId(null);
+    }
+  };
+
+  const reservationStatusLabel = (res: ReservationCard) => {
+    switch (res.status) {
+      case "PendingApproval":
+        return "Awaiting admin approval";
+      case "ApprovedAwaitingPayment":
+        return "Approved — payment due";
+      case "Confirmed":
+        return "Confirmed";
+      case "Rejected":
+        return "Declined";
+      case "Cancelled":
+        return "Cancelled";
+      default:
+        return res.status;
+    }
+  };
+
   // ---------------------------------------------
   // RENDER PANE 1: AUTHENTICATION
   // ---------------------------------------------
@@ -207,6 +271,11 @@ function GuestPortalInner() {
         <Link href="/" className="absolute top-10 left-10 flex items-center gap-3 text-white hover:text-turquoise transition-colors z-20 font-bold uppercase tracking-widest text-xs">
           <ArrowLeft className="w-4 h-4" /> Return Home
         </Link>
+        {sanitizeReturnPath(searchParams.get("returnTo")) && (
+          <p className="absolute top-10 right-10 z-20 max-w-xs text-right text-[10px] uppercase tracking-widest text-white/80">
+            After sign-in you&apos;ll return to your previous page.
+          </p>
+        )}
         
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="bg-white/95 backdrop-blur-xl p-10 md:p-14 rounded-[3rem] shadow-2xl w-full max-w-md border border-white relative z-10 w-full">
           <div className="w-20 h-20 bg-sapphire text-sand-light rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl">
@@ -239,22 +308,21 @@ function GuestPortalInner() {
             </button>
           </form>
 
-          {/* Social Sign In Divider */}
+          {/* Google Sign In */}
           <div className="flex items-center gap-4 my-8">
              <div className="h-[1px] bg-sapphire/10 flex-1" />
-             <span className="text-[9px] uppercase tracking-widest text-sapphire/30 font-bold">Or Continue With</span>
+             <span className="text-[9px] uppercase tracking-widest text-sapphire/30 font-bold">Or continue with Google</span>
              <div className="h-[1px] bg-sapphire/10 flex-1" />
           </div>
 
-          <div className="flex gap-4">
-             <button onClick={() => handleOAuth('google')} className="flex-1 bg-white border border-sapphire/10 py-3 rounded-full flex justify-center items-center hover:bg-sand-light transition-colors group">
-                {/* SVG Google Custom */}
-                <svg className="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-             </button>
-             <button onClick={() => handleOAuth('facebook')} className="flex-1 bg-white border border-sapphire/10 py-3 rounded-full flex justify-center items-center hover:bg-sand-light transition-colors group">
-                <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="#1877F2" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-             </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleGoogleOAuth}
+            className="w-full bg-white border border-sapphire/10 py-3.5 rounded-full flex justify-center items-center gap-3 hover:bg-sand-light transition-colors group"
+          >
+            <svg className="w-5 h-5 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" aria-hidden><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+            <span className="text-xs font-semibold text-sapphire/80">Google</span>
+          </button>
           
           <div className="mt-8 text-center border-t border-sapphire/5 pt-6">
             <button onClick={() => { setIsLogin(!isLogin); setErrorMsg(""); }} className="text-[10px] uppercase font-bold tracking-[0.2em] text-sapphire/60 hover:text-turquoise transition-colors">
@@ -396,8 +464,8 @@ function GuestPortalInner() {
                  <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i*0.1 }} key={res._id} className="bg-white rounded-[2.5rem] shadow-xl shadow-sapphire/5 border border-sapphire/5 overflow-hidden group">
                    <div className="relative aspect-video w-full bg-sand-light overflow-hidden">
                      <Image src={res.propertyId?.images?.[0] || "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2"} alt="Suite" fill sizes="(max-width: 1024px) 100vw, 33vw" className="object-cover group-hover:scale-105 transition-transform duration-1000" />
-                     <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full shadow-lg">
-                        <span className={`text-[9px] font-bold uppercase tracking-widest ${res.status === 'Confirmed' ? 'text-emerald-600' : 'text-amber-500'}`}>{res.status}</span>
+                     <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-1.5 rounded-full shadow-lg max-w-[min(100%,14rem)]">
+                        <span className={`text-[9px] font-bold uppercase tracking-widest leading-tight block ${res.status === 'Confirmed' ? 'text-emerald-600' : res.status === 'Rejected' ? 'text-red-600' : 'text-amber-600'}`}>{reservationStatusLabel(res)}</span>
                      </div>
                    </div>
                    <div className="p-8">
@@ -421,12 +489,29 @@ function GuestPortalInner() {
                          </div>
                       </div>
                       
-                      <div className="mt-8 flex justify-between items-end">
+                      <div className="mt-6 space-y-2">
+                         <p className="text-[9px] uppercase tracking-widest text-sapphire/40 font-bold">Booking ID</p>
+                         <p className="font-mono text-sm font-semibold text-sapphire">{res.bookingCode || res._id}</p>
+                         <p className="text-[9px] uppercase tracking-widest text-sapphire/40 font-bold pt-2">Payment</p>
+                         <p className="text-xs font-medium text-sapphire/80 capitalize">{res.paymentStatus || (res.status === 'Confirmed' ? 'paid' : 'unpaid')}</p>
+                      </div>
+
+                      <div className="mt-6 flex justify-between items-end gap-4 flex-wrap">
                          <div>
-                            <p className="text-[9px] uppercase tracking-widest text-sapphire/40 font-bold mb-1">Total Authorized</p>
+                            <p className="text-[9px] uppercase tracking-widest text-sapphire/40 font-bold mb-1">Total</p>
                             <p className="text-xl font-bold text-sapphire">{res.totalPrice.toLocaleString()} EGP</p>
                          </div>
-                         <p className="text-[9px] uppercase tracking-widest text-sapphire/30 font-bold max-w-28 truncate" title={res.paymentGatewayReference}>PNR: {res.paymentGatewayReference || 'Pending'}</p>
+                         {res.status === "ApprovedAwaitingPayment" && (
+                           <button
+                             type="button"
+                             disabled={payingId === res._id}
+                             onClick={() => handlePayReservation(res._id)}
+                             className="flex items-center gap-2 bg-sapphire text-white px-6 py-3 rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-turquoise transition-colors disabled:opacity-60"
+                           >
+                             {payingId === res._id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+                             Pay now
+                           </button>
+                         )}
                       </div>
                    </div>
                  </motion.div>

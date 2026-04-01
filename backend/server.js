@@ -1,13 +1,16 @@
+const path = require('path');
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const passport = require('passport');
 const User = require('./models/User');
+const Reservation = require('./models/Reservation');
+const crypto = require('crypto');
 const { getJwtSecret } = require('./config/jwt');
 
-// Load env vars
-dotenv.config();
+// Load env vars from backend/.env even if the process cwd is not the backend folder
+dotenv.config({ path: path.join(__dirname, '.env') });
 
 if (process.env.NODE_ENV === 'production') {
   try {
@@ -41,6 +44,17 @@ app.use(express.urlencoded({ extended: true }));
 require('./config/passport');
 app.use(passport.initialize());
 
+// Return JSON (not HTML from the Next.js proxy) when the DB is not ready yet
+app.use((req, res, next) => {
+  if (req.originalUrl.startsWith('/api') && mongoose.connection.readyState !== 1) {
+    return res.status(503).json({
+      message:
+        'Database not connected. Check MONGO_URI in backend/.env and that MongoDB is reachable, then restart the API.',
+    });
+  }
+  next();
+});
+
 // Routes
 const authRoutes = require('./routes/auth');
 const propertyRoutes = require('./routes/properties');
@@ -59,13 +73,36 @@ app.get('/', (req, res) => {
 });
 
 // Database connection & Server initialization
-const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/tale';
+const PORT = Number(process.env.PORT) || 5000;
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/tale';
+/** Listen address: 127.0.0.1 locally avoids IPv6/IPv4 confusion; use 0.0.0.0 in production if needed. */
+const BIND_HOST = process.env.BIND_HOST || (process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1');
 
-mongoose.connect(MONGO_URI)
+const mongooseOpts = {
+  serverSelectionTimeoutMS: 15_000,
+  socketTimeoutMS: 45_000,
+  maxPoolSize: 10,
+  /** Prefer IPv4 on Windows so `localhost` / Atlas DNS issues are less likely. */
+  family: 4,
+};
+
+function logMongoTarget(uri) {
+  try {
+    const u = new URL(uri);
+    const db = u.pathname?.replace(/^\//, '') || '?';
+    console.log(`[TALÉ] Connecting to MongoDB host="${u.hostname}" db="${db}"`);
+  } catch {
+    console.log('[TALÉ] MONGO_URI is set (could not parse for log)');
+  }
+}
+
+logMongoTarget(MONGO_URI);
+
+mongoose
+  .connect(MONGO_URI, mongooseOpts)
   .then(async () => {
     console.log('MongoDB connected successfully.');
-    
+
     // Dev-only bootstrap when ADMIN_BOOTSTRAP_EMAIL + ADMIN_BOOTSTRAP_PASSWORD are set (never in production)
     try {
       if (process.env.NODE_ENV !== 'production') {
@@ -86,12 +123,67 @@ mongoose.connect(MONGO_URI)
       console.log('[TALÉ] Admin bootstrap skipped:', e.message);
     }
 
-    app.listen(PORT, () => console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`));
+    try {
+      await Reservation.collection.updateMany(
+        { status: 'Pending', paymentGatewayReference: { $nin: [null, ''] } },
+        { $set: { status: 'ApprovedAwaitingPayment', paymentStatus: 'pending_gateway' } }
+      );
+      await Reservation.collection.updateMany(
+        {
+          status: 'Pending',
+          $or: [
+            { paymentGatewayReference: { $exists: false } },
+            { paymentGatewayReference: null },
+            { paymentGatewayReference: '' },
+          ],
+        },
+        { $set: { status: 'PendingApproval', paymentStatus: 'unpaid' } }
+      );
+      await Reservation.collection.updateMany(
+        { status: 'Confirmed' },
+        { $set: { paymentStatus: 'paid' } }
+      );
+      const needsCode = await Reservation.find({
+        $or: [{ bookingCode: { $exists: false } }, { bookingCode: null }, { bookingCode: '' }],
+      })
+        .select('_id')
+        .lean();
+      for (const row of needsCode) {
+        let code;
+        for (let i = 0; i < 12; i += 1) {
+          code = `Talé-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+          const clash = await Reservation.findOne({ bookingCode: code }).select('_id').lean();
+          if (!clash) break;
+        }
+        if (code) await Reservation.collection.updateOne({ _id: row._id }, { $set: { bookingCode: code } });
+      }
+    } catch (e) {
+      console.log('[TALÉ] Reservation migration skipped:', e.message);
+    }
   })
-  .catch(err => {
+  .catch((err) => {
     console.error(`MongoDB Connection Error: ${err.message}`);
-    process.exit(1);
+    console.error(
+      '[TALÉ] Tips: use 127.0.0.1 instead of localhost in MONGO_URI on Windows; ensure MongoDB is running or Atlas IP allowlist + correct password (URL-encoded). API returns 503 for /api until connected.'
+    );
   });
+
+const server = app.listen(PORT, BIND_HOST, () => {
+  console.log(
+    `[TALÉ] API listening on http://${BIND_HOST}:${PORT} (${process.env.NODE_ENV || 'development'})`
+  );
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(
+      `[TALÉ] Port ${PORT} is already in use. Stop the other process (Task Manager / netstat) or set PORT=5001 in backend/.env`
+    );
+  } else {
+    console.error('[TALÉ] HTTP server error:', err.message);
+  }
+  process.exit(1);
+});
 
 // Automatic configuration re-hydration trigger
 

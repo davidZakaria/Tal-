@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useProperty } from "@/hooks/useProperties";
 import { motion } from "framer-motion";
@@ -8,10 +8,12 @@ import Image from "next/image";
 import { ArrowLeft, Wifi, Wind, Coffee, Bed, Bath, Waves, Loader2, Calendar, AlertCircle, type LucideIcon } from "lucide-react";
 import { useState, useEffect } from "react";
 import { apiUrl } from "@/lib/api";
+import { guestSignInUrl, shouldRedirectGuestToSignIn } from "@/lib/guestReturnTo";
 
 export default function PropertyDetails() {
   const params = useParams();
   const router = useRouter();
+  const pathname = usePathname() || "";
   const id = params?.id as string;
   const { data: property, isLoading, error } = useProperty(id);
 
@@ -21,6 +23,8 @@ export default function PropertyDetails() {
   const [guests, setGuests] = useState(2);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [requestSuccess, setRequestSuccess] = useState<string | null>(null);
+  const [guestPhone, setGuestPhone] = useState("");
   const [guestToken, setGuestToken] = useState<string | null>(null);
 
   useEffect(() => {
@@ -86,10 +90,7 @@ export default function PropertyDetails() {
 
   const totalPrice = property.basePrice * nights;
 
-  const checkoutHeaders: Record<string, string> = { "Content-Type": "application/json" };
-  if (guestToken) {
-    checkoutHeaders.Authorization = `Bearer ${guestToken}`;
-  }
+  const openForBooking = property.openForBooking !== false;
 
   return (
     <div className="min-h-screen bg-sand-light pb-32">
@@ -254,20 +255,43 @@ export default function PropertyDetails() {
                 </select>
               </div>
 
+              {guestToken && (
+                <div className="bg-sand-light/50 p-4 rounded-2xl border border-sapphire/5 relative">
+                  <label className="text-[9px] uppercase tracking-[0.2em] font-bold text-sapphire/50 absolute top-3 left-4">Phone (for the reservation)</label>
+                  <input
+                    type="tel"
+                    value={guestPhone}
+                    onChange={(e) => setGuestPhone(e.target.value)}
+                    className="w-full mt-4 bg-transparent text-sapphire font-medium text-sm focus:outline-none"
+                    placeholder="+20..."
+                    required
+                  />
+                </div>
+              )}
+
+              {!openForBooking && (
+                <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
+                  This suite is not open for booking yet. Please choose another listing or check back later.
+                </p>
+              )}
+
               {guestToken ? (
                 <p className="text-xs leading-relaxed text-sapphire/80 bg-turquoise/10 border border-turquoise/25 rounded-2xl px-4 py-3">
-                  You are signed in. This reservation will show in your{" "}
-                  <strong className="text-sapphire">Guest portal</strong> under Travel Portfolio (use the same email as your account).
+                  You are signed in. Submit a request; after admin approval you can complete payment from your{" "}
+                  <Link href={guestSignInUrl(pathname)} className="font-semibold text-sapphire underline-offset-2 hover:underline">
+                    guest portal
+                  </Link>
+                  .
                 </p>
               ) : (
                 <p className="text-xs text-sapphire/55">
                   <Link
-                    href="/portal"
+                    href={guestSignInUrl(pathname)}
                     className="font-semibold text-terracotta underline-offset-2 hover:underline"
                   >
                     Sign in to the guest portal
                   </Link>{" "}
-                  first so we can attach this booking to your account.
+                  to request a reservation. Payment is only available after approval.
                 </p>
               )}
 
@@ -298,51 +322,64 @@ export default function PropertyDetails() {
               )}
 
               <button 
-                disabled={isProcessing || !arrivalDate || !departureDate || hasConflict}
+                disabled={
+                  isProcessing ||
+                  !arrivalDate ||
+                  !departureDate ||
+                  hasConflict ||
+                  !guestToken ||
+                  !openForBooking ||
+                  !guestPhone.trim()
+                }
                 onClick={async () => {
                   setIsProcessing(true);
                   setPaymentError(null);
+                  setRequestSuccess(null);
                   try {
-                    const payReq = await fetch(apiUrl("/api/payment/checkout"), {
+                    const reqRes = await fetch(apiUrl("/api/inventory/reservation-request"), {
                       method: "POST",
-                      headers: checkoutHeaders,
+                      headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${guestToken}`,
+                      },
                       body: JSON.stringify({
                         propertyId: id,
-                        amountEGP: Math.round(totalPrice * 1.14),
-                        guests,
                         arrival: arrivalDate,
-                        departure: departureDate
-                      })
+                        departure: departureDate,
+                        guestPhone: guestPhone.trim(),
+                      }),
                     });
-                    const data = await payReq.json();
-                    if (!payReq.ok) {
-                      setPaymentError(
-                        data.message || data.error || "Checkout could not be started."
-                      );
+                    const data = await reqRes.json();
+                    if (!reqRes.ok) {
+                      if (shouldRedirectGuestToSignIn(reqRes, data)) {
+                        router.push(guestSignInUrl(pathname));
+                        setIsProcessing(false);
+                        return;
+                      }
+                      setPaymentError(data.message || data.error || "Request could not be submitted.");
                       setIsProcessing(false);
                       return;
                     }
-                    if (data.iframe_url) {
-                      window.location.href = data.iframe_url;
-                    } else {
-                      setPaymentError(
-                        data.message ||
-                          "Configure PayMob credentials in the backend .env to generate live checkouts."
-                      );
-                      setIsProcessing(false);
-                    }
+                    setRequestSuccess(
+                      "Request received. After an administrator approves it, complete payment from your guest portal."
+                    );
                   } catch {
-                    setPaymentError("Checkout could not be started. Check your connection and try again.");
-                    setIsProcessing(false);
+                    setPaymentError("Request failed. Check your connection and try again.");
                   }
+                  setIsProcessing(false);
                 }}
                 className={`w-full mt-4 py-5 rounded-full uppercase tracking-[0.2em] font-bold text-xs shadow-xl transition-all group flex items-center justify-center gap-3
                   ${hasConflict ? 'bg-red-600 text-white hover:bg-red-700 shadow-red-600/20' : 
                    'bg-sapphire text-white shadow-sapphire/20 hover:bg-turquoise disabled:opacity-50 disabled:cursor-not-allowed'}`}
               >
                 {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : (!hasConflict && <Calendar className="w-4 h-4 group-hover:animate-pulse" />)} 
-                {hasConflict ? "DATES OCCUPIED" : isProcessing ? "INITIALIZING PAYMOB..." : "RESERVE SUITE"}
+                {hasConflict ? "DATES OCCUPIED" : isProcessing ? "SUBMITTING..." : "REQUEST RESERVATION"}
               </button>
+              {requestSuccess && (
+                <p className="mt-3 text-sm text-emerald-700 text-center" role="status">
+                  {requestSuccess}
+                </p>
+              )}
               {paymentError && (
                 <p className="mt-3 text-sm text-red-600 text-center" role="alert">
                   {paymentError}

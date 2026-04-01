@@ -1,8 +1,9 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const mongoose = require('mongoose');
 const User = require('./models/User');
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/tale';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/tale';
 const ADMIN_EMAIL = process.env.ADMIN_SEED_EMAIL;
 const ADMIN_PASSWORD = process.env.ADMIN_SEED_PASSWORD;
 

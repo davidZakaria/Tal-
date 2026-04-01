@@ -66,7 +66,7 @@ const sendConfirmationEmail = async (reservation, property) => {
             </div>
             <div style="text-align: right;">
                <p style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #888888; margin: 0 0 5px 0;">Secure Reference</p>
-               <p style="font-size: 14px; font-family: monospace; font-weight: bold; letter-spacing: 2px; color: #06405a; background-color: #f1f5f9; padding: 6px 12px; border-radius: 6px; margin: 0;">#TAL-${reservation._id.toString().substring(18, 24).toUpperCase()}</p>
+               <p style="font-size: 14px; font-family: monospace; font-weight: bold; letter-spacing: 2px; color: #06405a; background-color: #f1f5f9; padding: 6px 12px; border-radius: 6px; margin: 0;">#${reservation.bookingCode || `Talé-${reservation._id.toString().substring(18, 24).toUpperCase()}`}</p>
             </div>
           </div>
         </div>

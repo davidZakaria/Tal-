@@ -3,6 +3,7 @@
 import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { sanitizeReturnPath } from "@/lib/guestReturnTo";
 
 function OAuthSuccessInner() {
   const router = useRouter();
@@ -12,7 +13,14 @@ function OAuthSuccessInner() {
     const token = searchParams.get("token");
     if (token) {
       localStorage.setItem("guestToken", token);
-      router.push("/portal");
+      const stored = sessionStorage.getItem("guestReturnTo");
+      sessionStorage.removeItem("guestReturnTo");
+      const rt = sanitizeReturnPath(stored);
+      if (rt) {
+        router.replace(rt);
+      } else {
+        router.push("/portal");
+      }
     } else {
       router.push("/portal?error=oauth_failed");
     }

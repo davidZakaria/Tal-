@@ -9,7 +9,7 @@ const { protect, admin } = require('../middleware/authMiddleware');
 // @access  Public
 router.get('/', async (req, res) => {
   try {
-    const rawProperties = await Property.find({}).sort({ basePrice: 1 }).lean();
+    const rawProperties = await Property.find({ openForBooking: true }).sort({ basePrice: 1 }).lean();
     const today = new Date();
     today.setHours(0,0,0,0);
     
@@ -17,12 +17,39 @@ router.get('/', async (req, res) => {
     const propertiesWithOccupancy = await Promise.all(rawProperties.map(async (prop) => {
       const activeReservation = await Reservation.findOne({
         propertyId: prop._id,
-        status: { $in: ['Confirmed', 'Pending'] },
+        status: { $in: ['Confirmed', 'ApprovedAwaitingPayment'] },
         checkInDate: { $lte: today },
         checkOutDate: { $gte: today }
       });
       return { ...prop, isOccupiedToday: !!activeReservation };
     }));
+
+    res.json(propertiesWithOccupancy);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @route   GET /api/properties/manage/all
+// @desc    All properties (including closed for booking) for admin UI
+// @access  Admin
+router.get('/manage/all', protect, admin, async (req, res) => {
+  try {
+    const rawProperties = await Property.find({}).sort({ basePrice: 1 }).lean();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const propertiesWithOccupancy = await Promise.all(
+      rawProperties.map(async (prop) => {
+        const activeReservation = await Reservation.findOne({
+          propertyId: prop._id,
+          status: { $in: ['Confirmed', 'ApprovedAwaitingPayment'] },
+          checkInDate: { $lte: today },
+          checkOutDate: { $gte: today },
+        });
+        return { ...prop, isOccupiedToday: !!activeReservation };
+      })
+    );
 
     res.json(propertiesWithOccupancy);
   } catch (error) {
