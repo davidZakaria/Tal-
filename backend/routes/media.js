@@ -2,12 +2,25 @@ const express = require('express');
 const router = express.Router();
 const cloudinary = require('cloudinary').v2;
 
-const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
-const apiKey = process.env.CLOUDINARY_API_KEY;
-const apiSecret = process.env.CLOUDINARY_API_SECRET;
+/** Trim quotes/whitespace — common .env mistakes break signatures and cause Cloudinary 401. */
+function envTrim(key) {
+  const v = process.env[key];
+  if (v == null) return '';
+  return String(v).trim().replace(/^["']|["']$/g, '');
+}
+
+const cloudName = envTrim('CLOUDINARY_CLOUD_NAME');
+const apiKey = envTrim('CLOUDINARY_API_KEY');
+const apiSecret = envTrim('CLOUDINARY_API_SECRET');
+
+const hasRealCredentials =
+  Boolean(cloudName) &&
+  Boolean(apiKey) &&
+  Boolean(apiSecret) &&
+  !(apiKey === 'test_key' && apiSecret === 'test_secret');
 
 if (process.env.NODE_ENV === 'production') {
-  if (!cloudName || !apiKey || !apiSecret) {
+  if (!hasRealCredentials) {
     throw new Error('CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET are required in production');
   }
 }
@@ -23,22 +36,36 @@ cloudinary.config({
 // @access  Admin / Guest
 router.get('/signature', (req, res) => {
   try {
+    if (!hasRealCredentials) {
+      return res.status(503).json({
+        message:
+          'Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET in backend/.env (no spaces in cloud name — copy from Dashboard → Settings → Product environment credentials). Restart the API.',
+        code: 'CLOUDINARY_NOT_CONFIGURED',
+      });
+    }
+
+    if (/\s/.test(cloudName)) {
+      return res.status(400).json({
+        message:
+          'CLOUDINARY_CLOUD_NAME must not contain spaces. Use the exact Cloud name from Cloudinary (e.g. dxxxx), not your account display name.',
+        code: 'CLOUDINARY_INVALID_CLOUD_NAME',
+      });
+    }
+
     const timestamp = Math.round(new Date().getTime() / 1000);
-    // Dynamically retrieve the targeted destination folder or default to Properties
-    const targetFolder = req.query.folder || 'tale_properties';
-    
-    // As per SKILL.md: Ensure authorized users use Signed Uploads extensively
+    const targetFolder = String(req.query.folder || 'tale_properties').trim() || 'tale_properties';
+
     const signature = cloudinary.utils.api_sign_request(
       { timestamp, folder: targetFolder },
       cloudinary.config().api_secret
     );
-    
-    res.json({ 
-      timestamp, 
-      signature, 
-      cloudName: cloudinary.config().cloud_name, 
+
+    res.json({
+      timestamp,
+      signature,
+      cloudName: cloudinary.config().cloud_name,
       apiKey: cloudinary.config().api_key,
-      folder: targetFolder 
+      folder: targetFolder,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 104" role="img" aria-label="TALE Hotel">
+  <text
+    x="8"
+    y="64"
+    font-family="Georgia, 'Times New Roman', serif"
+    font-size="48"
+    font-weight="400"
+    fill="#c9a86a"
+    letter-spacing="0.14em"
+  >TAL&#201;</text>
+  <text
+    x="8"
+    y="94"
+    font-family="system-ui, sans-serif"
+    font-size="15"
+    font-weight="600"
+    fill="#ffffff"
+    letter-spacing="0.28em"
+  >HOTEL</text>
+</svg>

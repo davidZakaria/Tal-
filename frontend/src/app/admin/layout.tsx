@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { apiUrl, describeApiBase } from "@/lib/api";
 import Input from "@/components/ui/Input";
 import Button from "@/components/ui/Button";
+import { SiteLogo } from "@/components/SiteLogo";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -90,6 +91,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div className="min-h-screen bg-sapphire flex items-center justify-center p-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1542314831-c6a4d40d886d?q=80&w=2000')] bg-cover opacity-10 mix-blend-overlay" />
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-white/10 backdrop-blur-xl p-12 rounded-[3rem] border border-white/10 shadow-2xl w-full max-w-md relative z-10 text-center">
+          <div className="flex justify-center mb-6">
+            <SiteLogo href="/" variant="onDark" wrapperClassName="h-20 w-64" />
+          </div>
           <LockKeyhole className="w-12 h-12 text-sand-light mx-auto mb-6 opacity-80" />
           <h1 className="text-3xl font-serif text-white tracking-widest mb-2">Talé Access</h1>
           <p className="text-xs uppercase font-bold tracking-[0.2em] text-turquoise mb-10">Restricted Admin Payload</p>
@@ -125,9 +129,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <div className="min-h-screen bg-sand-light flex">
       {/* Luxurious Sapphire Sidebar */}
       <aside className="w-72 bg-sapphire text-sand-light hidden md:flex flex-col shadow-2xl z-20">
-        <div className="p-10 pb-12 text-center">
-          <h2 className="text-4xl font-serif tracking-widest text-turquoise drop-shadow-md">Talé</h2>
-          <p className="text-[10px] uppercase tracking-[0.3em] text-sand-light/60 mt-4 leading-relaxed">Admin Portal</p>
+        <div className="p-10 pb-12 text-center flex flex-col items-center">
+          <SiteLogo href="/" variant="onDark" wrapperClassName="h-28 w-72" />
+          <p className="text-[10px] uppercase tracking-[0.3em] text-sand-light/60 mt-5 leading-relaxed">Admin Portal</p>
         </div>
         
         <nav className="flex-1 px-6 space-y-3">

@@ -4,27 +4,47 @@
    animations (e.g. Framer Motion + useScroll) and can spike CPU/GPU in dev. Use
    scrollIntoView({ behavior: "smooth" }) only where needed. */
 
+/* --- Brand system (Dark Sky / luxury) — semantic Tailwind tokens via @theme --- */
 :root {
-  --color-sand-light: #fbf8f5; 
-  --color-sand: #e3c8ab; 
-  --color-terracotta: #cca68f; /* Muted terracotta */
-  --color-sapphire: #06405a; 
-  --color-sapphire-dark: #03202e; /* Footer & deep surfaces */
-  --color-turquoise: #8cd0d7; 
+  --color-brand-teal: #003b3a;
+  --color-brand-charcoal: #1e2e2e;
+  --color-brand-forest: #052317;
+  --color-brand-gold: #c9a86a;
+  --color-brand-yellow: #ffb600;
+  --color-brand-yellow-light: #eded00;
+  --color-brand-white: #ffffff;
+
+  /* Legacy aliases (gradual migration across app) */
+  --color-sand-light: #fbf8f5;
+  --color-sand: #e3c8ab;
+  --color-terracotta: #cca68f;
+  --color-sapphire: #06405a;
+  --color-sapphire-dark: #03202e;
+  --color-turquoise: #8cd0d7;
 }
 
-/* Type scale reference: body 16px; labels use text-xs (12px) minimum on touch UIs */
-
 @theme inline {
+  --color-brand-teal: var(--color-brand-teal);
+  --color-brand-charcoal: var(--color-brand-charcoal);
+  --color-brand-forest: var(--color-brand-forest);
+  --color-brand-gold: var(--color-brand-gold);
+  --color-brand-yellow: var(--color-brand-yellow);
+  --color-brand-yellow-light: var(--color-brand-yellow-light);
+  --color-brand-white: var(--color-brand-white);
+
   --color-sand-light: var(--color-sand-light);
   --color-sand: var(--color-sand);
   --color-terracotta: var(--color-terracotta);
   --color-sapphire: var(--color-sapphire);
   --color-sapphire-dark: var(--color-sapphire-dark);
   --color-turquoise: var(--color-turquoise);
-  
+
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-playfair), ui-serif, Georgia, serif;
+}
+
+html {
+  overflow-x: hidden;
 }
 
 body {
@@ -33,11 +53,13 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  min-width: 0;
 }
 
-/* Focus: visible rings for keyboard users (Tailwind focus-visible:ring-* also used in components) */
+/* Focus: gold ring on dark luxury surfaces */
 :focus-visible {
-  outline: 2px solid var(--color-turquoise);
+  outline: 2px solid var(--color-brand-gold);
   outline-offset: 3px;
 }
 
@@ -47,22 +69,32 @@ body {
   }
 }
 
-/* Hide scrollbar for deeply immersive feel but keep functionality */
+/* Subtle stone / fabric grain — use on hero and dark sections (parent must be positioned) */
+.bg-noise-overlay::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
 ::-webkit-scrollbar {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--color-sand-light); 
+  background: var(--color-brand-charcoal);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-sand); 
+  background: var(--color-brand-teal);
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-terracotta); 
+  background: var(--color-brand-gold);
 }
 
-/* Fluid rhythmic animations */
 @keyframes wave {
   0% { transform: translateY(0px) rotate(0deg); }
   50% { transform: translateY(-15px) rotate(1deg); }

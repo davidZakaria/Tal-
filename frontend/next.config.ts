@@ -1,18 +1,53 @@
 import type { NextConfig } from "next";
+import { createRequire } from "module";
+import path from "path";
 
 /** Where Next.js proxies `/api/*` in dev (and when the client uses same-origin `/api` URLs). */
 const backendOrigin = (process.env.BACKEND_URL || "http://127.0.0.1:5000").replace(/\/$/, "");
 
 /**
- * Avoid setting turbopack.root manually: on Windows, a mis-resolved path can make the
- * dev file watcher scan far more than the app folder and peg RAM/CPU (looks like a “PC crash”).
+ * Absolute path to this app (`frontend/`), resolved via `package.json` (not `import.meta.url`).
+ * A `package-lock.json` under your user folder (e.g. `C:\Users\you\`) makes Next pick the wrong
+ * workspace root; wrong `turbopack.root` can make the dev watcher scan huge trees and peg CPU/RAM.
  */
+const require = createRequire(import.meta.url);
+const appDir = path.dirname(require.resolve("./package.json"));
+
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: appDir,
+  },
+  webpack: (config, { dev }) => {
+    if (dev) {
+      config.watchOptions = {
+        ...config.watchOptions,
+        ignored: ["**/node_modules/**", "**/.git/**"],
+      };
+    }
+    return config;
+  },
   async rewrites() {
     return [
       {
         source: "/api/:path*",
         destination: `${backendOrigin}/api/:path*`,
+      },
+    ];
+  },
+  /** Reduce stale logo caching when replacing `public/logo.*` during development. */
+  async headers() {
+    return [
+      {
+        source: "/logo.png",
+        headers: [{ key: "Cache-Control", value: "public, max-age=0, must-revalidate" }],
+      },
+      {
+        source: "/logo.svg",
+        headers: [{ key: "Cache-Control", value: "public, max-age=0, must-revalidate" }],
+      },
+      {
+        source: "/logo.webp",
+        headers: [{ key: "Cache-Control", value: "public, max-age=0, must-revalidate" }],
       },
     ];
   },

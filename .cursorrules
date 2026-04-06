@@ -1,0 +1,30 @@
+# Talé Hotel Frontend Development Rules
+
+## Tech Stack
+- Next.js (App Router), React, TypeScript.
+- Tailwind CSS for styling.
+- Framer Motion for animations.
+- Shadcn UI for accessible base components.
+
+Semantic Tailwind tokens: `brand-teal`, `brand-charcoal`, `brand-forest`, `brand-gold`, `brand-yellow`, `brand-yellow-light`, `brand-white` — defined in `frontend/src/app/globals.css` (`@theme inline`).
+
+## Brand Color Palette (Strict Enforcement)
+- **brand-gold**: `#c9a86a` (Use for primary buttons, active states, thin dividers, serif headings)
+- **brand-teal**: `#003b3a` (Use for primary dark sections, rich backgrounds, navbar on scroll)
+- **brand-charcoal**: `#1e2e2e` (Use for alternate dark sections, footer, deep contrast)
+- **brand-forest**: `#052317` (Use for subtle gradients or secondary dark UI cards)
+- **brand-yellow-vibrant**: `#FFB600` (Use for hover states, review stars, urgent notifications)
+- **brand-yellow-light**: `#EDED00` (Use for subtle glow effects)
+- **brand-white**: `#ffffff` (Use for main body text on dark backgrounds)
+
+## Design System & Vibe
+- **Aesthetic**: Ultra-luxury, boutique resort, Red Sea elegance.
+- **Layout**: Use confident negative space, full-width panoramic images, and off-grid image arrangements.
+- **Typography**: Use large, oversized Serif fonts for headings. Use clean Sans-Serif for body. 
+- **Borders**: Use thin, 1px borders in `brand-gold` with low opacity for elegance.
+- **Animations**: ALL page transitions and scroll reveals MUST use Framer Motion with slow, fluid spring physics. 
+
+## Coding Standards
+- Write clean, modular, functional React components.
+- Ensure sub-2-second load times by prioritizing Server-Side Rendering (SSR) and lazy loading heavy images.
+- All UI must be mobile-first and responsive.

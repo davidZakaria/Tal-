@@ -91,32 +91,55 @@ export default function AdminProperties() {
     setPreviewImage(URL.createObjectURL(file));
     setUploading(true);
 
-    try {
-      // 1. Fetch encrypted Cloudinary Signature from our Express SKILL implementation
-      const sigRes = await fetch(apiUrl("/api/media/signature"));
-      const { timestamp, signature, cloudName, apiKey } = await sigRes.json();
+    const folder = "tale_properties";
 
-      // 2. Safely bounce user's image straight to Cloudinary bypasses node.js max limits
+    try {
+      const sigRes = await fetch(apiUrl(`/api/media/signature?folder=${encodeURIComponent(folder)}`));
+      const sigBody = await sigRes.json().catch(() => ({}));
+
+      if (!sigRes.ok) {
+        const hint =
+          typeof sigBody.message === "string"
+            ? sigBody.message
+            : "Could not get upload signature. Check backend/.env (CLOUDINARY_*) and restart the API.";
+        throw new Error(hint);
+      }
+
+      const { timestamp, signature, cloudName, apiKey } = sigBody as {
+        timestamp: number;
+        signature: string;
+        cloudName: string;
+        apiKey: string;
+      };
+
       const formData = new FormData();
       formData.append("file", file);
       formData.append("api_key", apiKey);
-      formData.append("timestamp", timestamp);
+      formData.append("timestamp", String(timestamp));
       formData.append("signature", signature);
-      formData.append("folder", "tale_properties");
+      formData.append("folder", folder);
 
-      const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudName)}/image/upload`, {
         method: "POST",
         body: formData,
       });
 
-      if (!uploadRes.ok) throw new Error("Cloudinary rejected the upload (401). Real API keys are required!");
+      const uploadPayload = await uploadRes.json().catch(() => ({}));
+      if (!uploadRes.ok) {
+        const msg =
+          uploadPayload?.error?.message ||
+          uploadPayload?.error ||
+          `Upload failed (HTTP ${uploadRes.status}). Check Cloudinary keys and that the cloud name has no spaces.`;
+        throw new Error(typeof msg === "string" ? msg : JSON.stringify(uploadPayload));
+      }
 
-      const uploadedData = await uploadRes.json();
+      const uploadedData = uploadPayload as { secure_url: string };
       console.log("Cloudinary Upload Success:", uploadedData.secure_url);
-      setPreviewImage(uploadedData.secure_url); // lock to the remote URL indicating success
+      setPreviewImage(uploadedData.secure_url);
     } catch (error) {
       console.error("Cloudinary Error:", error);
-      alert("Cloudinary Upload Failed! You need to insert your real API Keys into your database.");
+      const message = error instanceof Error ? error.message : "Upload failed.";
+      alert(message);
       setPreviewImage(null);
     } finally {
       setUploading(false);

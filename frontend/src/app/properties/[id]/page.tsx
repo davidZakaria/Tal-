@@ -1,23 +1,58 @@
 "use client";
 
-import { useParams, usePathname, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useProperty } from "@/hooks/useProperties";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
-import { ArrowLeft, Wifi, Wind, Coffee, Bed, Bath, Waves, Loader2, Calendar, AlertCircle, type LucideIcon } from "lucide-react";
-import { useState, useEffect } from "react";
+import {
+  ArrowLeft,
+  Wifi,
+  Wind,
+  Coffee,
+  Bed,
+  Bath,
+  Waves,
+  Loader2,
+  Calendar,
+  AlertCircle,
+  Users,
+  Sparkles,
+  type LucideIcon,
+} from "lucide-react";
+import { useState, useEffect, useSyncExternalStore } from "react";
 import { apiUrl } from "@/lib/api";
+import { SiteLogo } from "@/components/SiteLogo";
 import { guestSignInUrl, shouldRedirectGuestToSignIn } from "@/lib/guestReturnTo";
+import { getBookingIntent } from "@/lib/bookingIntent";
+
+const AMENITY_ICONS: Record<string, LucideIcon> = {
+  "High-Speed Fiber": Wifi,
+  "Red Sea View": Waves,
+  "Climate Control": Wind,
+  "Mini Bar": Coffee,
+  "Master Suite": Bed,
+  "En-Suite Bath": Bath,
+  "Private Pool": Waves,
+  "Balcony Lounge": Wind,
+  "Private Cinema": Coffee,
+};
+
+const springSoft = {
+  type: "spring" as const,
+  damping: 28,
+  stiffness: 200,
+};
 
 export default function PropertyDetails() {
   const params = useParams();
   const router = useRouter();
   const pathname = usePathname() || "";
+  const searchParams = useSearchParams();
+  const reduceMotion = useReducedMotion();
   const id = params?.id as string;
   const { data: property, isLoading, error } = useProperty(id);
 
-  // Booking State
   const [arrivalDate, setArrivalDate] = useState("");
   const [departureDate, setDepartureDate] = useState("");
   const [guests, setGuests] = useState(2);
@@ -25,19 +60,39 @@ export default function PropertyDetails() {
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [requestSuccess, setRequestSuccess] = useState<string | null>(null);
   const [guestPhone, setGuestPhone] = useState("");
-  const [guestToken, setGuestToken] = useState<string | null>(null);
+  const guestToken = useSyncExternalStore(
+    () => () => {},
+    () => (typeof window !== "undefined" ? localStorage.getItem("guestToken") : null),
+    () => null
+  );
 
   useEffect(() => {
-    setGuestToken(typeof window !== "undefined" ? localStorage.getItem("guestToken") : null);
-  }, []);
+    if (!id) return;
+    const ci = searchParams.get("checkIn");
+    const co = searchParams.get("checkOut");
+    const g = searchParams.get("guests");
+    if (ci) setArrivalDate(ci);
+    if (co) setDepartureDate(co);
+    if (g) {
+      const n = parseInt(g, 10);
+      if (!Number.isNaN(n) && n >= 1) setGuests(n);
+    }
+    if (!ci && !co) {
+      const intent = getBookingIntent();
+      if (intent) {
+        setArrivalDate(intent.checkIn);
+        setDepartureDate(intent.checkOut);
+        setGuests(intent.guests);
+      }
+    }
+  }, [id, searchParams]);
 
-  // Anti-Collision Calendar Logic
   const [bookedDates, setBookedDates] = useState<string[]>([]);
   useEffect(() => {
-    if(!id) return;
+    if (!id) return;
     fetch(apiUrl(`/api/inventory/booked-dates/${id}`))
-      .then(res => res.json())
-      .then(data => setBookedDates(data || []))
+      .then((res) => res.json())
+      .then((data) => setBookedDates(data || []))
       .catch(console.error);
   }, [id]);
 
@@ -46,16 +101,14 @@ export default function PropertyDetails() {
     const curr = new Date(arrivalDate);
     const last = new Date(departureDate);
 
-    if (curr > last) return true; // Safety logic reverse-date block
+    if (curr > last) return true;
 
-    // Day Use Logic
     if (curr.getTime() === last.getTime()) {
-       return bookedDates.includes(curr.toISOString().split('T')[0]);
+      return bookedDates.includes(curr.toISOString().split("T")[0]);
     }
-    
-    // Multi Night Logic (Don't trigger conflict just because we selected a Checkout Date as our Arrival Date!)
-    while(curr < last) {
-      if(bookedDates.includes(curr.toISOString().split('T')[0])) return true;
+
+    while (curr < last) {
+      if (bookedDates.includes(curr.toISOString().split("T")[0])) return true;
       curr.setDate(curr.getDate() + 1);
     }
     return false;
@@ -64,22 +117,29 @@ export default function PropertyDetails() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-sand-light">
-        <Loader2 className="w-12 h-12 text-sapphire animate-spin" />
+      <div className="flex min-h-screen items-center justify-center bg-brand-charcoal">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-brand-gold" aria-hidden />
+          <p className="text-[10px] font-bold uppercase tracking-[0.35em] text-brand-white/50">Loading suite</p>
+        </div>
       </div>
     );
   }
 
   if (error || !property) {
     return (
-      <div className="min-h-screen flex items-center flex-col gap-6 justify-center bg-sand-light text-sapphire">
-        <p className="uppercase tracking-[0.2em] font-bold text-sm">Property not found.</p>
-        <button onClick={() => router.back()} className="text-xs uppercase hover:text-terracotta border-b border-sapphire">Return to Home</button>
+      <div className="flex min-h-screen flex-col items-center justify-center gap-8 bg-brand-charcoal px-6 text-center">
+        <p className="font-serif text-2xl text-brand-white/90 md:text-3xl">This suite could not be found.</p>
+        <Link
+          href="/#sanctuaries"
+          className="rounded-full border border-brand-gold/40 bg-brand-teal/50 px-8 py-3 text-xs font-bold uppercase tracking-[0.2em] text-brand-gold transition-colors hover:bg-brand-teal hover:text-brand-white"
+        >
+          Browse sanctuaries
+        </Link>
       </div>
     );
   }
 
-  // Calculate generic total price for visual wow
   let nights = 1;
   if (arrivalDate && departureDate) {
     const d1 = new Date(arrivalDate);
@@ -89,306 +149,420 @@ export default function PropertyDetails() {
   }
 
   const totalPrice = property.basePrice * nights;
-
   const openForBooking = property.openForBooking !== false;
+  const extraImages = property.images?.slice(1, 5) ?? [];
+  const motionOff = reduceMotion === true;
 
   return (
-    <div className="min-h-screen bg-sand-light pb-32">
-      {/* Immersive Panoramic Header */}
-      <div className="relative w-full h-[60vh] min-h-[500px]">
-        {property.images && property.images.length > 0 ? (
-          <Image 
-            src={property.images[0]} 
-            alt={property.name} 
-            fill 
-            sizes="100vw"
-            className="object-cover"
+    <div className="min-h-screen min-w-0 bg-brand-charcoal text-brand-white selection:bg-brand-gold/30">
+      {/* Sticky brand bar — home nav scale + clean actions */}
+      <header className="sticky top-0 z-50 border-b border-black/10 bg-brand-teal shadow-[0_8px_32px_rgba(0,0,0,0.18)]">
+        <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-4 sm:gap-6 sm:px-6 md:px-10 md:py-5">
+          <SiteLogo
+            href="/"
+            variant="onLight"
+            wrapperClassName="h-16 w-48 shrink-0 sm:h-20 sm:w-56 md:h-24 md:w-64 lg:h-28 lg:w-72"
+            linkClassName="ring-offset-brand-teal"
             priority
           />
-        ) : (
-          <div className="w-full h-full bg-sapphire/10 flex items-center justify-center">
-            <span className="text-sapphire/30 text-2xl uppercase tracking-widest">No Media Available</span>
+          <nav
+            className="flex shrink-0 items-center gap-1.5 sm:gap-2"
+            aria-label="Page"
+          >
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-full px-4 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-white/95 transition-colors hover:bg-white/10 hover:text-brand-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-brand-teal sm:h-12 sm:px-5 sm:text-xs sm:tracking-[0.2em]"
+            >
+              <ArrowLeft className="h-4 w-4 shrink-0 opacity-90" aria-hidden />
+              Back
+            </button>
+            <span className="hidden h-6 w-px bg-brand-white/15 sm:block" aria-hidden />
+            <Link
+              href="/#sanctuaries"
+              className="inline-flex h-11 items-center rounded-full border border-brand-gold/45 bg-brand-gold/12 px-4 text-[11px] font-bold uppercase tracking-[0.18em] text-brand-gold transition-colors hover:border-brand-gold/70 hover:bg-brand-gold/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-brand-teal sm:h-12 sm:px-6 sm:text-xs sm:tracking-[0.2em]"
+            >
+              All suites
+            </Link>
+          </nav>
+        </div>
+      </header>
+
+      {/* Hero — aspect-ratio frame, editorial crop */}
+      <section className="relative px-4 pt-6 sm:px-6 md:px-10">
+        <div className="relative mx-auto max-w-[1600px] overflow-hidden rounded-[1.75rem] border border-brand-gold/25 bg-brand-forest shadow-[0_40px_100px_rgba(0,0,0,0.45)] sm:rounded-[2.25rem]">
+          <div className="relative aspect-video w-full max-h-[min(68vh,760px)] sm:aspect-[21/9]">
+            {property.images && property.images.length > 0 ? (
+              <Image
+                src={property.images[0]}
+                alt={property.name}
+                fill
+                sizes="(max-width: 768px) 100vw, 90vw"
+                className="object-cover object-[center_42%]"
+                priority
+              />
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-brand-teal/40">
+                <span className="text-sm font-bold uppercase tracking-[0.3em] text-brand-white/40">No imagery yet</span>
+              </div>
+            )}
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-brand-charcoal via-brand-charcoal/55 to-transparent sm:via-brand-charcoal/40" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-brand-charcoal/50 via-transparent to-brand-charcoal/30" />
+
+            <div className="absolute bottom-0 left-0 right-0 z-10 p-6 sm:p-10 md:p-12">
+              <motion.div
+                initial={motionOff ? false : { opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={motionOff ? { duration: 0 } : { duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <div className="mb-4 flex flex-wrap items-center gap-2 text-[10px] font-bold uppercase tracking-[0.28em] text-brand-gold/90 sm:text-[11px]">
+                  <span className="rounded-full border border-brand-gold/35 bg-brand-charcoal/50 px-3 py-1 backdrop-blur-sm">
+                    {property.roomType || "Signature Suite"}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-brand-white/70">
+                    <Users className="h-3.5 w-3.5 text-brand-gold/70" aria-hidden />
+                    Up to {property.capacity || 2} guests
+                  </span>
+                </div>
+                <h1 className="max-w-4xl font-serif text-3xl font-light leading-[1.1] tracking-tight text-brand-white sm:text-5xl md:text-6xl lg:text-7xl">
+                  {property.name}
+                </h1>
+                <p className="mt-4 max-w-xl text-sm font-light text-brand-white/75 sm:text-base">
+                  Talé · Galala City — curated coastal living on the Red Sea.
+                </p>
+              </motion.div>
+            </div>
+          </div>
+        </div>
+
+        {/* Thumbnail strip */}
+        {extraImages.length > 0 && (
+          <div className="mx-auto mt-6 flex max-w-[1600px] gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:gap-4">
+            {extraImages.map((src, i) => (
+              <div
+                key={`${src}-${i}`}
+                className="relative h-20 w-28 shrink-0 overflow-hidden rounded-xl border border-brand-gold/20 sm:h-24 sm:w-36 sm:rounded-2xl"
+              >
+                <Image src={src} alt="" fill sizes="144px" className="object-cover" />
+              </div>
+            ))}
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-sapphire/90 via-sapphire/20 to-transparent" />
-        
-        {/* Navigation Overlay */}
-        <div className="absolute top-0 left-0 w-full p-8 md:p-12 z-20">
-          <button 
-            onClick={() => router.back()}
-            className="flex items-center gap-3 text-white/80 hover:text-white transition-all uppercase tracking-[0.2em] font-bold text-xs bg-black/20 backdrop-blur-md px-6 py-3 rounded-full hover:bg-black/40"
-          >
-            <ArrowLeft className="w-4 h-4" /> Return to Listings
-          </button>
-        </div>
+      </section>
 
-        {/* Title Overlay */}
-        <div className="absolute bottom-0 left-0 w-full p-8 md:p-16 text-white z-20">
-          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-            <span className="uppercase tracking-[0.3em] font-bold text-xs text-sand mb-4 block">Signature Collection</span>
-            <h1 className="text-5xl md:text-7xl font-serif font-light tracking-tight max-w-4xl">{property.name}</h1>
-          </motion.div>
-        </div>
-      </div>
+      {/* Breadcrumb + main */}
+      <div className="mx-auto max-w-7xl px-4 pb-28 pt-10 sm:px-6 md:px-10 md:pt-14">
+        <nav
+          className="mb-10 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] font-bold uppercase tracking-[0.25em] text-brand-white/45 sm:text-[11px]"
+          aria-label="Breadcrumb"
+        >
+          <Link href="/" className="transition-colors hover:text-brand-gold">
+            Talé
+          </Link>
+          <span className="text-brand-gold/40">/</span>
+          <Link href="/#sanctuaries" className="transition-colors hover:text-brand-gold">
+            Sanctuaries
+          </Link>
+          <span className="text-brand-gold/40">/</span>
+          <span className="max-w-[min(100%,12rem)] truncate text-brand-gold/90 sm:max-w-none">{property.name}</span>
+        </nav>
 
-      {/* Main Content Layout */}
-      <div className="max-w-7xl mx-auto px-6 md:px-12 mt-16 lg:mt-24 grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24">
-        
-        {/* Left Column: Details */}
-        <div className="lg:col-span-7 space-y-16">
-          <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2, duration: 1 }}>
-            <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-sapphire/40 mb-6">The Experience</h2>
-            <p className="text-sapphire text-xl lg:text-2xl font-light leading-relaxed">
-              {property.description || "Indulge in an uninterrupted coastal escape tailored perfectly to your every desire. Featuring unparalleled panoramic views and lavish interior comforts designed to evoke the soul of a beach resort."}
-            </p>
-          </motion.section>
-
-          <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4, duration: 1 }}>
-            <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-sapphire/40 mb-8">Amenities & Features</h2>
-            {property.amenities && property.amenities.length > 0 ? (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-8 text-sapphire">
-                {property.amenities.map((amenity: string, idx: number) => {
-                   const AMENITY_ICONS: Record<string, LucideIcon> = {
-                     "High-Speed Fiber": Wifi,
-                     "Red Sea View": Waves,
-                     "Climate Control": Wind,
-                     "Mini Bar": Coffee,
-                     "Master Suite": Bed,
-                     "En-Suite Bath": Bath,
-                     "Private Pool": Waves,
-                     "Balcony Lounge": Wind,
-                     "Private Cinema": Coffee
-                   };
-                   const Icon = AMENITY_ICONS[amenity] || Coffee;
-                   return (
-                     <div key={idx} className="flex flex-col gap-3 group">
-                       <Icon className="w-6 h-6 text-terracotta group-hover:scale-110 transition-transform" />
-                       <span className="text-sm font-medium">{amenity}</span>
-                     </div>
-                   );
-                })}
+        <div className="grid grid-cols-1 gap-14 lg:grid-cols-12 lg:gap-16 xl:gap-20">
+          {/* Story + amenities */}
+          <div className="space-y-14 lg:col-span-7">
+            <motion.section
+              initial={motionOff ? false : { opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={motionOff ? { duration: 0 } : springSoft}
+            >
+              <div className="mb-6 flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-brand-gold" aria-hidden />
+                <h2 className="text-[11px] font-bold uppercase tracking-[0.35em] text-brand-gold/90">The experience</h2>
               </div>
-            ) : (
-               <p className="text-[10px] tracking-[0.2em] uppercase font-bold text-sapphire/40">Configuration Pending. Standard luxury amenities included globally.</p>
-            )}
-          </motion.section>
-
-          {/* Reserved Dates Ledger UI */}
-          {bookedDates.length > 0 && (
-            <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5, duration: 1 }} className="mt-16 pt-16 border-t border-sapphire/10">
-              <h2 className="text-sm font-bold uppercase tracking-[0.3em] text-sapphire/40 mb-8 flex items-center gap-3">
-                <Calendar className="w-5 h-5 text-terracotta" /> Live Occupancy Ledger
-              </h2>
-              <div className="flex flex-wrap gap-3">
-                {Array.from(new Set(bookedDates)).sort().map((dateStr, idx) => {
-                  const dateObj = new Date(dateStr);
-                  // Safely bypass UTC zero-hour rendering offset so it perfectly matches String Date
-                  dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset());
-                  
-                  return (
-                    <motion.span whileHover={{ scale: 1.05 }} key={idx} className="bg-white border border-sapphire/10 text-sapphire/80 px-5 py-3 rounded-full text-[10px] md:text-xs font-bold tracking-widest uppercase flex items-center gap-3 shadow-md">
-                      <span className="w-1.5 h-1.5 rounded-full bg-terracotta/80 relative flex-shrink-0">
-                         <span className="absolute inset-0 rounded-full bg-terracotta animate-ping opacity-70"></span>
-                      </span>
-                      {dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </motion.span>
-                  )
-                })}
-              </div>
-              <p className="text-[10px] uppercase font-bold tracking-[0.2em] text-sapphire/50 mt-8 max-w-lg leading-relaxed border-l-2 border-sapphire/20 pl-4 py-1">
-                These extremely highly requested dates are currently secured by private reservations. Please configure your itinerary accordingly.
+              <p className="font-serif text-xl font-light leading-relaxed text-brand-white/90 sm:text-2xl md:text-[1.65rem] md:leading-[1.55]">
+                {property.description ||
+                  "Indulge in an uninterrupted coastal escape tailored to your stay — panoramic views, refined interiors, and the calm rhythm of the Red Sea."}
               </p>
             </motion.section>
-          )}
-        </div>
 
-        {/* Right Column: Sticky Booking Modal */}
-        <div className="lg:col-span-5">
-          <motion.div 
-            initial={{ opacity: 0, y: 40 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ delay: 0.3, duration: 0.8, type: "spring" }}
-            className="sticky top-12 bg-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-sapphire/5 border border-sapphire/10"
-          >
-            <div className="pb-8 border-b border-sapphire/10 mb-8">
-              <p className="text-3xl font-serif text-sapphire font-light">
-                {property.basePrice} <span className="text-lg uppercase tracking-widest font-bold text-sapphire/40">EGP</span>
-              </p>
-              <p className="text-xs uppercase tracking-widest font-bold text-sapphire/60 mt-2">per night</p>
-            </div>
-
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                {/* Arrival */}
-                <div className="bg-sand-light/50 p-4 rounded-2xl border border-sapphire/5 transition-all focus-within:border-turquoise focus-within:bg-white relative">
-                  <label className="text-[9px] uppercase tracking-[0.2em] font-bold text-sapphire/50 absolute top-3 left-4">Arrival</label>
-                  <input 
-                    type="date" 
-                    value={arrivalDate}
-                    onChange={(e) => setArrivalDate(e.target.value)}
-                    className="w-full mt-4 bg-transparent text-sapphire font-medium text-sm focus:outline-none placeholder-sapphire/30 cursor-pointer"
-                  />
-                </div>
-                {/* Departure */}
-                <div className="bg-sand-light/50 p-4 rounded-2xl border border-sapphire/5 transition-all focus-within:border-turquoise focus-within:bg-white relative">
-                  <label className="text-[9px] uppercase tracking-[0.2em] font-bold text-sapphire/50 absolute top-3 left-4">Departure</label>
-                  <input 
-                    type="date" 
-                    value={departureDate}
-                    onChange={(e) => setDepartureDate(e.target.value)}
-                    className="w-full mt-4 bg-transparent text-sapphire font-medium text-sm focus:outline-none placeholder-sapphire/30 cursor-pointer"
-                  />
-                </div>
-              </div>
-
-              {/* Guests */}
-              <div className="bg-sand-light/50 p-4 rounded-2xl border border-sapphire/5 transition-all focus-within:border-turquoise focus-within:bg-white relative">
-                <label className="text-[9px] uppercase tracking-[0.2em] font-bold text-sapphire/50 absolute top-3 left-4">Guests</label>
-                <select 
-                  value={guests}
-                  onChange={(e) => setGuests(Number(e.target.value))}
-                  className="w-full mt-4 bg-transparent text-sapphire font-medium text-sm focus:outline-none cursor-pointer appearance-none"
-                >
-                  {[...Array(property.capacity || 2)].map((_, i) => (
-                    <option key={i+1} value={i+1}>{i+1} {i === 0 ? "Guest" : "Guests"}</option>
-                  ))}
-                </select>
-              </div>
-
-              {guestToken && (
-                <div className="bg-sand-light/50 p-4 rounded-2xl border border-sapphire/5 relative">
-                  <label className="text-[9px] uppercase tracking-[0.2em] font-bold text-sapphire/50 absolute top-3 left-4">Phone (for the reservation)</label>
-                  <input
-                    type="tel"
-                    value={guestPhone}
-                    onChange={(e) => setGuestPhone(e.target.value)}
-                    className="w-full mt-4 bg-transparent text-sapphire font-medium text-sm focus:outline-none"
-                    placeholder="+20..."
-                    required
-                  />
-                </div>
-              )}
-
-              {!openForBooking && (
-                <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
-                  This suite is not open for booking yet. Please choose another listing or check back later.
-                </p>
-              )}
-
-              {guestToken ? (
-                <p className="text-xs leading-relaxed text-sapphire/80 bg-turquoise/10 border border-turquoise/25 rounded-2xl px-4 py-3">
-                  You are signed in. Submit a request; after admin approval you can complete payment from your{" "}
-                  <Link href={guestSignInUrl(pathname)} className="font-semibold text-sapphire underline-offset-2 hover:underline">
-                    guest portal
-                  </Link>
-                  .
-                </p>
+            <motion.section
+              initial={motionOff ? false : { opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={motionOff ? { duration: 0 } : { ...springSoft, delay: 0.05 }}
+            >
+              <h2 className="mb-8 text-[11px] font-bold uppercase tracking-[0.35em] text-brand-gold/90">Amenities</h2>
+              {property.amenities && property.amenities.length > 0 ? (
+                <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {property.amenities.map((amenity: string, idx: number) => {
+                    const Icon = AMENITY_ICONS[amenity] || Coffee;
+                    return (
+                      <li
+                        key={`${amenity}-${idx}`}
+                        className="flex items-start gap-4 rounded-2xl border border-brand-gold/20 bg-brand-teal/35 px-5 py-4 transition-colors hover:border-brand-gold/45 hover:bg-brand-teal/50"
+                      >
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-brand-gold/30 bg-brand-charcoal/60 text-brand-gold">
+                          <Icon className="h-4 w-4" aria-hidden />
+                        </span>
+                        <span className="pt-1.5 text-sm font-medium leading-snug text-brand-white/90">{amenity}</span>
+                      </li>
+                    );
+                  })}
+                </ul>
               ) : (
-                <p className="text-xs text-sapphire/55">
-                  <Link
-                    href={guestSignInUrl(pathname)}
-                    className="font-semibold text-terracotta underline-offset-2 hover:underline"
-                  >
-                    Sign in to the guest portal
-                  </Link>{" "}
-                  to request a reservation. Payment is only available after approval.
+                <p className="rounded-2xl border border-brand-white/10 bg-brand-teal/20 px-5 py-4 text-sm text-brand-white/55">
+                  Amenities will appear here once configured. Standard Talé comforts apply across all suites.
                 </p>
               )}
+            </motion.section>
 
-              {/* Conflict Alert Panel */}
-              {hasConflict && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="bg-red-50 text-red-600 p-4 rounded-2xl border border-red-100 flex items-start gap-3 mt-4">
-                  <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <p className="text-xs font-medium leading-relaxed">Those dates are already occupied by another luxurious getaway. Please select a pristine alternative range.</p>
-                </motion.div>
-              )}
+            {bookedDates.length > 0 && (
+              <motion.section
+                initial={motionOff ? false : { opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={motionOff ? { duration: 0 } : { ...springSoft, delay: 0.08 }}
+                className="border-t border-brand-gold/15 pt-14"
+              >
+                <h2 className="mb-6 flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.35em] text-brand-gold/90">
+                  <Calendar className="h-4 w-4 text-brand-gold" aria-hidden />
+                  Held dates
+                </h2>
+                <p className="mb-6 max-w-xl text-sm leading-relaxed text-brand-white/55">
+                  The nights below are already reserved. Choose open dates for your stay.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {Array.from(new Set(bookedDates))
+                    .sort()
+                    .map((dateStr, idx) => {
+                      const dateObj = new Date(dateStr);
+                      dateObj.setMinutes(dateObj.getMinutes() + dateObj.getTimezoneOffset());
+                      return (
+                        <span
+                          key={idx}
+                          className="inline-flex items-center gap-2 rounded-full border border-brand-gold/25 bg-brand-charcoal/80 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-brand-white/75"
+                        >
+                          <span className="h-1.5 w-1.5 rounded-full bg-brand-yellow/90" aria-hidden />
+                          {dateObj.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        </span>
+                      );
+                    })}
+                </div>
+              </motion.section>
+            )}
+          </div>
 
-                {/* Total Calculation */}
-              {arrivalDate && departureDate && (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="py-4 space-y-3 overflow-hidden">
-                  <div className="flex justify-between text-sapphire/70 text-sm">
-                    <span>{property.basePrice} EGP x {nights} nights</span>
-                    <span>{totalPrice} EGP</span>
-                  </div>
-                  <div className="flex justify-between text-sapphire/70 text-sm">
-                    <span>Taxes & Fees (14%)</span>
-                    <span>{Math.round(totalPrice * 0.14)} EGP</span>
-                  </div>
-                  <div className="flex justify-between text-sapphire font-bold text-lg pt-4 border-t border-sapphire/10">
-                    <span>Total</span>
-                    <span>{Math.round(totalPrice * 1.14)} EGP</span>
-                  </div>
-                </motion.div>
-              )}
+          {/* Booking — glass card, home hero parity */}
+          <div className="lg:col-span-5">
+            <motion.div
+              initial={motionOff ? false : { opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={motionOff ? { duration: 0 } : { ...springSoft, delay: 0.06 }}
+              className="sticky top-28 rounded-[2rem] border border-brand-gold/30 bg-white/[0.07] p-6 shadow-[0_32px_80px_rgba(0,0,0,0.35)] backdrop-blur-xl sm:top-32 sm:p-8 md:top-36 md:p-10"
+            >
+              <div className="mb-8 border-b border-brand-gold/20 pb-8">
+                <p className="font-serif text-4xl font-light text-brand-white md:text-[2.75rem]">
+                  {property.basePrice}{" "}
+                  <span className="text-base font-bold uppercase tracking-[0.25em] text-brand-gold/90">EGP</span>
+                </p>
+                <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.28em] text-brand-white/45">per night</p>
+              </div>
 
-              <button 
-                disabled={
-                  isProcessing ||
-                  !arrivalDate ||
-                  !departureDate ||
-                  hasConflict ||
-                  !guestToken ||
-                  !openForBooking ||
-                  !guestPhone.trim()
-                }
-                onClick={async () => {
-                  setIsProcessing(true);
-                  setPaymentError(null);
-                  setRequestSuccess(null);
-                  try {
-                    const reqRes = await fetch(apiUrl("/api/inventory/reservation-request"), {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${guestToken}`,
-                      },
-                      body: JSON.stringify({
-                        propertyId: id,
-                        arrival: arrivalDate,
-                        departure: departureDate,
-                        guestPhone: guestPhone.trim(),
-                      }),
-                    });
-                    const data = await reqRes.json();
-                    if (!reqRes.ok) {
-                      if (shouldRedirectGuestToSignIn(reqRes, data)) {
-                        router.push(guestSignInUrl(pathname));
+              <div className="space-y-5">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl border border-brand-white/15 bg-brand-charcoal/50 p-3 transition-colors focus-within:border-brand-gold/40 focus-within:bg-brand-charcoal/70 sm:p-4">
+                    <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-brand-gold/75">Arrival</label>
+                    <input
+                      type="date"
+                      value={arrivalDate}
+                      onChange={(e) => setArrivalDate(e.target.value)}
+                      className="mt-3 w-full cursor-pointer bg-transparent text-sm font-medium text-brand-white focus:outline-none"
+                    />
+                  </div>
+                  <div className="rounded-2xl border border-brand-white/15 bg-brand-charcoal/50 p-3 transition-colors focus-within:border-brand-gold/40 focus-within:bg-brand-charcoal/70 sm:p-4">
+                    <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-brand-gold/75">Departure</label>
+                    <input
+                      type="date"
+                      value={departureDate}
+                      onChange={(e) => setDepartureDate(e.target.value)}
+                      className="mt-3 w-full cursor-pointer bg-transparent text-sm font-medium text-brand-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-brand-white/15 bg-brand-charcoal/50 p-3 transition-colors focus-within:border-brand-gold/40 focus-within:bg-brand-charcoal/70 sm:p-4">
+                  <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-brand-gold/75">Guests</label>
+                  <select
+                    value={guests}
+                    onChange={(e) => setGuests(Number(e.target.value))}
+                    className="mt-3 w-full cursor-pointer appearance-none bg-transparent text-sm font-medium text-brand-white focus:outline-none"
+                  >
+                    {[...Array(property.capacity || 2)].map((_, i) => (
+                      <option key={i + 1} value={i + 1} className="bg-brand-charcoal text-brand-white">
+                        {i + 1} {i === 0 ? "Guest" : "Guests"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {guestToken && (
+                  <div className="rounded-2xl border border-brand-white/15 bg-brand-charcoal/50 p-3 sm:p-4">
+                    <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-brand-gold/75">
+                      Phone (reservation)
+                    </label>
+                    <input
+                      type="tel"
+                      value={guestPhone}
+                      onChange={(e) => setGuestPhone(e.target.value)}
+                      className="mt-3 w-full bg-transparent text-sm font-medium text-brand-white placeholder:text-brand-white/35 focus:outline-none"
+                      placeholder="+20…"
+                      required
+                    />
+                  </div>
+                )}
+
+                {!openForBooking && (
+                  <p className="rounded-2xl border border-brand-yellow/30 bg-brand-yellow/10 px-4 py-3 text-xs leading-relaxed text-brand-yellow-light">
+                    This suite is not open for booking yet. Browse other sanctuaries or check back later.
+                  </p>
+                )}
+
+                {guestToken ? (
+                  <p className="rounded-2xl border border-brand-gold/25 bg-brand-teal/30 px-4 py-3 text-xs leading-relaxed text-brand-white/80">
+                    You are signed in. After approval, complete payment from your{" "}
+                    <Link
+                      href={guestSignInUrl(pathname)}
+                      className="font-semibold text-brand-gold underline-offset-2 hover:underline"
+                    >
+                      guest portal
+                    </Link>
+                    .
+                  </p>
+                ) : (
+                  <p className="text-xs leading-relaxed text-brand-white/55">
+                    <Link
+                      href={guestSignInUrl(pathname)}
+                      className="font-semibold text-brand-gold underline-offset-2 hover:underline"
+                    >
+                      Sign in to the guest portal
+                    </Link>{" "}
+                    to submit a reservation request.
+                  </p>
+                )}
+
+                {hasConflict && (
+                  <motion.div
+                    initial={motionOff ? false : { opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="flex gap-3 rounded-2xl border border-red-500/35 bg-red-950/40 p-4 text-red-100"
+                  >
+                    <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-300" aria-hidden />
+                    <p className="text-xs font-medium leading-relaxed">
+                      Those dates are not available. Please choose another range.
+                    </p>
+                  </motion.div>
+                )}
+
+                {arrivalDate && departureDate && (
+                  <motion.div
+                    initial={motionOff ? false : { opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="space-y-3 border-t border-brand-gold/15 pt-5 text-sm"
+                  >
+                    <div className="flex justify-between text-brand-white/65">
+                      <span>
+                        {property.basePrice} EGP × {nights} nights
+                      </span>
+                      <span className="text-brand-white">{totalPrice} EGP</span>
+                    </div>
+                    <div className="flex justify-between text-brand-white/65">
+                      <span>Taxes & fees (14%)</span>
+                      <span>{Math.round(totalPrice * 0.14)} EGP</span>
+                    </div>
+                    <div className="flex justify-between border-t border-brand-gold/20 pt-4 font-serif text-lg text-brand-white">
+                      <span>Total</span>
+                      <span>{Math.round(totalPrice * 1.14)} EGP</span>
+                    </div>
+                  </motion.div>
+                )}
+
+                <button
+                  type="button"
+                  disabled={
+                    isProcessing ||
+                    !arrivalDate ||
+                    !departureDate ||
+                    hasConflict ||
+                    !guestToken ||
+                    !openForBooking ||
+                    !guestPhone.trim()
+                  }
+                  onClick={async () => {
+                    setIsProcessing(true);
+                    setPaymentError(null);
+                    setRequestSuccess(null);
+                    try {
+                      const reqRes = await fetch(apiUrl("/api/inventory/reservation-request"), {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                          Authorization: `Bearer ${guestToken}`,
+                        },
+                        body: JSON.stringify({
+                          propertyId: id,
+                          arrival: arrivalDate,
+                          departure: departureDate,
+                          guestPhone: guestPhone.trim(),
+                        }),
+                      });
+                      const data = await reqRes.json();
+                      if (!reqRes.ok) {
+                        if (shouldRedirectGuestToSignIn(reqRes, data)) {
+                          router.push(guestSignInUrl(pathname));
+                          setIsProcessing(false);
+                          return;
+                        }
+                        setPaymentError(data.message || data.error || "Request could not be submitted.");
                         setIsProcessing(false);
                         return;
                       }
-                      setPaymentError(data.message || data.error || "Request could not be submitted.");
-                      setIsProcessing(false);
-                      return;
+                      setRequestSuccess(
+                        "Request received. After an administrator approves it, complete payment from your guest portal."
+                      );
+                    } catch {
+                      setPaymentError("Request failed. Check your connection and try again.");
                     }
-                    setRequestSuccess(
-                      "Request received. After an administrator approves it, complete payment from your guest portal."
-                    );
-                  } catch {
-                    setPaymentError("Request failed. Check your connection and try again.");
-                  }
-                  setIsProcessing(false);
-                }}
-                className={`w-full mt-4 py-5 rounded-full uppercase tracking-[0.2em] font-bold text-xs shadow-xl transition-all group flex items-center justify-center gap-3
-                  ${hasConflict ? 'bg-red-600 text-white hover:bg-red-700 shadow-red-600/20' : 
-                   'bg-sapphire text-white shadow-sapphire/20 hover:bg-turquoise disabled:opacity-50 disabled:cursor-not-allowed'}`}
-              >
-                {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : (!hasConflict && <Calendar className="w-4 h-4 group-hover:animate-pulse" />)} 
-                {hasConflict ? "DATES OCCUPIED" : isProcessing ? "SUBMITTING..." : "REQUEST RESERVATION"}
-              </button>
-              {requestSuccess && (
-                <p className="mt-3 text-sm text-emerald-700 text-center" role="status">
-                  {requestSuccess}
-                </p>
-              )}
-              {paymentError && (
-                <p className="mt-3 text-sm text-red-600 text-center" role="alert">
-                  {paymentError}
-                </p>
-              )}
-            </div>
-          </motion.div>
-        </div>
+                    setIsProcessing(false);
+                  }}
+                  className={`group mt-2 flex w-full items-center justify-center gap-3 rounded-full py-4 text-xs font-bold uppercase tracking-[0.22em] shadow-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-brand-charcoal disabled:cursor-not-allowed disabled:opacity-45 ${
+                    hasConflict
+                      ? "bg-red-800 text-white hover:bg-red-700"
+                      : "bg-brand-gold text-brand-charcoal hover:bg-brand-yellow"
+                  }`}
+                >
+                  {isProcessing ? (
+                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  ) : !hasConflict ? (
+                    <Calendar className="h-4 w-4 transition-transform group-hover:scale-105" aria-hidden />
+                  ) : null}
+                  {hasConflict ? "Dates unavailable" : isProcessing ? "Submitting…" : "Request reservation"}
+                </button>
 
+                {requestSuccess && (
+                  <p className="text-center text-sm text-emerald-300/95" role="status">
+                    {requestSuccess}
+                  </p>
+                )}
+                {paymentError && (
+                  <p className="text-center text-sm text-red-300" role="alert">
+                    {paymentError}
+                  </p>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -45,6 +45,12 @@ npm run create-admin
 | Variable | Description |
 |----------|-------------|
 | `NEXT_PUBLIC_API_URL` | Backend base URL (default `http://localhost:5000`) |
+| `NEXT_PUBLIC_LOGO_VERSION` | Defaults to `1`. **Increment** (e.g. `2`, `3`) every time you replace the logo file so the browser loads the new file. Restart `npm run dev` after changing `.env.local`. |
+| `NEXT_PUBLIC_LOGO_FILE` | Optional. Filename inside `frontend/public/` (default **`logo.png`**). Use `logo.svg` only if you prefer the vector fallback. |
+
+**Brand logo (important):** Save your full logo as **`frontend/public/logo.png`** (same folder as `package.json` under `frontend`). That path is **`…\Talé\frontend\public\logo.png`** — not the repo root, not `backend`. If `logo.png` is missing, the site falls back to **`logo.svg`** (simple TALÉ / HOTEL text), then a text placeholder. **`logo.svg` must use UTF-8 or XML entities** — never paste special characters from Word into SVG without checking encoding. Bump **`NEXT_PUBLIC_LOGO_VERSION`** after replacing assets; restart Next; hard-refresh.
+
+**Home hero video (optional):** place `hero.mp4` in `frontend/public/`. The landing page uses `<video poster="…">` with `/hero.mp4` as the source; if the file is absent, the poster image still displays.
 
 ## Run locally
 
@@ -68,6 +74,8 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000). API listens on port **5000** by default.
 
+**Dev server:** `npm run dev` uses **`next dev --webpack`** so the file watcher stays scoped to this app. If you have a `package-lock.json` in your user home (e.g. `C:\Users\YourName\`), Turbopack can otherwise pick the wrong root and overload CPU/RAM. To try Turbopack again: `npm run dev:turbo` from **`frontend/`** only.
+
 ## Scripts
 
 | Location | Command | Purpose |
@@ -76,6 +84,8 @@ Open [http://localhost:3000](http://localhost:3000). API listens on port **5000*
 | `backend` | `npm run create-admin` | Create or promote admin user |
 | `frontend` | `npm run lint` | ESLint |
 | `frontend` | `npm test` | Runs lint (CI-friendly) |
+| `frontend` | `npm run dev` | Next dev (Webpack, safer on Windows) |
+| `frontend` | `npm run dev:turbo` | Next dev with Turbopack |
 | `frontend` | `npm run build` | Production build |
 
 ## Security notes

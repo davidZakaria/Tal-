@@ -16,7 +16,7 @@ const playfair = Playfair_Display({
 
 export const viewport: Viewport = {
   /** Single value avoids edge cases in some browsers / devtools with multi-entry theme-color. */
-  themeColor: "#fbf8f5",
+  themeColor: "#003b3a",
   width: "device-width",
   initialScale: 1,
 };
@@ -49,7 +49,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${playfair.variable} antialiased`} suppressHydrationWarning>
+      <body className={`${inter.variable} ${playfair.variable} antialiased overflow-x-hidden min-w-0`} suppressHydrationWarning>
         <AppProviders>
           {children}
           <Footer />

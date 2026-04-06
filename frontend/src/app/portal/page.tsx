@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, Suspense } from "react";
 import { motion } from "framer-motion";
 import { UserCircle, KeyRound, Mail, ArrowRight, Loader2, Calendar as CalendarIcon, MapPin, Coffee, ArrowLeft, Settings, Luggage, Camera, Check, CreditCard } from "lucide-react";
 import Link from "next/link";
+import { SiteLogo } from "@/components/SiteLogo";
 import { apiUrl } from "@/lib/api";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -268,7 +269,10 @@ function GuestPortalInner() {
            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1542314831-c6a4d40d886d?q=80&w=2000')] bg-cover opacity-20 mix-blend-overlay" />
         </div>
         
-        <Link href="/" className="absolute top-10 left-10 flex items-center gap-3 text-white hover:text-turquoise transition-colors z-20 font-bold uppercase tracking-widest text-xs">
+        <Link
+          href="/"
+          className="absolute top-10 left-10 flex items-center gap-3 text-white hover:text-turquoise transition-colors z-20 font-bold uppercase tracking-widest text-xs"
+        >
           <ArrowLeft className="w-4 h-4" /> Return Home
         </Link>
         {sanitizeReturnPath(searchParams.get("returnTo")) && (
@@ -278,6 +282,9 @@ function GuestPortalInner() {
         )}
         
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="bg-white/95 backdrop-blur-xl p-10 md:p-14 rounded-[3rem] shadow-2xl w-full max-w-md border border-white relative z-10 w-full">
+          <div className="flex justify-center mb-8">
+            <SiteLogo href="/" variant="onLight" wrapperClassName="h-28 w-[22rem] sm:h-32 sm:w-[26rem]" priority />
+          </div>
           <div className="w-20 h-20 bg-sapphire text-sand-light rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl">
              <UserCircle className="w-10 h-10" />
           </div>
@@ -343,7 +350,9 @@ function GuestPortalInner() {
        <div className="h-[35vh] bg-sapphire relative flex flex-col justify-center px-6 md:px-20 overflow-hidden">
          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1542314831-c6a4d40d886d?q=80&w=2000')] bg-cover opacity-20 mix-blend-overlay" />
          <div className="absolute inset-0 bg-gradient-to-t from-sapphire to-transparent" />
-         
+         <div className="absolute top-6 left-6 md:top-8 md:left-20 z-20">
+           <SiteLogo href="/" variant="onDark" wrapperClassName="h-20 w-64" />
+         </div>
          <div className="relative z-10 flex justify-between items-end w-full max-w-7xl mx-auto">
             <div className="flex items-center gap-6">
                <div className="w-24 h-24 rounded-full border-4 border-white/20 overflow-hidden relative shadow-2xl bg-sapphire">
