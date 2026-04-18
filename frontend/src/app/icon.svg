@@ -1,12 +1,28 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Tal&#233;">
-  <rect width="512" height="512" rx="112" fill="#003b3a"/>
-  <rect x="28" y="28" width="456" height="456" rx="88"
-        fill="none" stroke="#c9a86a" stroke-opacity="0.35" stroke-width="3"/>
-  <!-- Sun -->
-  <circle cx="256" cy="175" r="78" fill="#c9a86a"/>
-  <!-- Horizon -->
-  <path d="M96 275 L416 275" stroke="#c9a86a" stroke-width="3" stroke-opacity="0.4"/>
-  <!-- Sea -->
-  <path d="M88 320 Q176 285 256 320 T424 320" fill="none" stroke="#c9a86a" stroke-width="16" stroke-linecap="round"/>
-  <path d="M88 352 Q168 322 256 352 T424 352" fill="none" stroke="#c9a86a" stroke-width="12" stroke-linecap="round" stroke-opacity="0.85"/>
+  <defs>
+    <linearGradient id="sand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#faf4eb"/>
+      <stop offset="45%" stop-color="#f2e6d6"/>
+      <stop offset="100%" stop-color="#e5d4be"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#sand)"/>
+  <rect x="28" y="28" width="456" height="456" rx="88" fill="none" stroke="#c9a86a" stroke-opacity="0.28" stroke-width="3"/>
+  <!-- Soft sun -->
+  <circle cx="398" cy="102" r="54" fill="#c9a86a" opacity="0.9"/>
+  <!-- Sand dunes -->
+  <path d="M0 308 Q160 268 320 288 T512 296 L512 512 L0 512 Z" fill="#e8d9c6"/>
+  <path d="M0 348 Q256 308 512 352 L512 512 L0 512 Z" fill="#dcc9ae"/>
+  <!-- Boutique hotel: roof + tower -->
+  <path d="M176 198 L256 118 L336 198 Z" fill="#1e2e2e"/>
+  <rect x="188" y="198" width="136" height="202" rx="12" fill="#1e2e2e"/>
+  <!-- Windows -->
+  <rect x="206" y="222" width="30" height="34" rx="4" fill="#c9a86a"/>
+  <rect x="241" y="222" width="30" height="34" rx="4" fill="#c9a86a"/>
+  <rect x="276" y="222" width="30" height="34" rx="4" fill="#c9a86a"/>
+  <rect x="206" y="268" width="30" height="34" rx="4" fill="#c9a86a"/>
+  <rect x="241" y="268" width="30" height="34" rx="4" fill="#c9a86a"/>
+  <rect x="276" y="268" width="30" height="34" rx="4" fill="#c9a86a"/>
+  <!-- Entry -->
+  <rect x="232" y="318" width="48" height="82" rx="8" fill="#c9a86a" opacity="0.82"/>
 </svg>
