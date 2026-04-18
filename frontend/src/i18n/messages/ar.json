@@ -226,7 +226,6 @@
     "signInNotice": "<link>سجّل الدخول إلى بوابة الضيف</link> لتقديم طلب حجز.",
     "datesUnavailable": "هذه التواريخ غير متاحة. يرجى اختيار نطاق آخر.",
     "nightsLine": "{price} ج.م × {nights} ليالٍ",
-    "taxes": "الضرائب والرسوم (14%)",
     "total": "الإجمالي",
     "requestReservation": "طلب حجز",
     "submitting": "جارٍ الإرسال…",

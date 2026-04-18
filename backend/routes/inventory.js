@@ -93,7 +93,7 @@ router.post('/reservation-request', protect, guestOnly, async (req, res) => {
 
     const nights = nightsBetween(arrival, departure);
     const subtotal = property.basePrice * nights;
-    const totalPrice = Math.round(subtotal * 1.14);
+    const totalPrice = Math.round(subtotal);
 
     const blocking = await Reservation.find({
       propertyId,

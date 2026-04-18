@@ -26,7 +26,6 @@ export const metadata: Metadata = {
   title: "Talé Admin",
   description: "Talé Hotel administration console.",
   robots: { index: false, follow: false },
-  icons: { icon: "/favicon.ico" },
 };
 
 export default function AdminRootLayout({ children }: { children: React.ReactNode }) {

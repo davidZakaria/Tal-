@@ -6,9 +6,11 @@ export default createMiddleware(routing);
 export const config = {
   matcher: [
     // Skip API, the guest portal, the admin console, Next internals,
-    // Vercel internals, and files with an extension (images, fonts, etc.).
+    // Vercel internals, Next.js metadata file conventions (icon, apple-icon,
+    // opengraph-image, twitter-image, manifest), and files with an extension
+    // (images, fonts, sitemap.xml, robots.txt, etc.).
     // Everything else (site brochure, property detail, auth/success) gets
     // locale negotiated and rewritten under /[locale]/…
-    "/((?!api|portal|admin|_next|_vercel|.*\\..*).*)",
+    "/((?!api|portal|admin|_next|_vercel|icon|apple-icon|opengraph-image|twitter-image|manifest|.*\\..*).*)",
   ],
 };

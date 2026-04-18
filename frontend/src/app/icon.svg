@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Tal&#233;">
+  <rect width="512" height="512" rx="112" fill="#003b3a"/>
+  <rect x="28" y="28" width="456" height="456" rx="88"
+        fill="none" stroke="#c9a86a" stroke-opacity="0.35" stroke-width="3"/>
+  <!-- Sun -->
+  <circle cx="256" cy="175" r="78" fill="#c9a86a"/>
+  <!-- Horizon -->
+  <path d="M96 275 L416 275" stroke="#c9a86a" stroke-width="3" stroke-opacity="0.4"/>
+  <!-- Sea -->
+  <path d="M88 320 Q176 285 256 320 T424 320" fill="none" stroke="#c9a86a" stroke-width="16" stroke-linecap="round"/>
+  <path d="M88 352 Q168 322 256 352 T424 352" fill="none" stroke="#c9a86a" stroke-width="12" stroke-linecap="round" stroke-opacity="0.85"/>
+</svg>

@@ -25,7 +25,6 @@ export const metadata: Metadata = {
   title: "Guest Portal | Talé Hotel",
   description: "Manage your Talé reservations, payments, and personal preferences.",
   robots: { index: false, follow: false },
-  icons: { icon: "/favicon.ico" },
 };
 
 export default function PortalRootLayout({ children }: { children: React.ReactNode }) {

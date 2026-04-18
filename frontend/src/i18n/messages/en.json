@@ -226,7 +226,6 @@
     "signInNotice": "<link>Sign in to the guest portal</link> to submit a reservation request.",
     "datesUnavailable": "Those dates are not available. Please choose another range.",
     "nightsLine": "{price} EGP × {nights} nights",
-    "taxes": "Taxes & fees (14%)",
     "total": "Total",
     "requestReservation": "Request reservation",
     "submitting": "Submitting…",

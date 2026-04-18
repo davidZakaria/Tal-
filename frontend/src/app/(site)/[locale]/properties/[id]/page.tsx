@@ -472,13 +472,9 @@ export default function PropertyDetails() {
                       <span>{t("nightsLine", { price: property.basePrice, nights })}</span>
                       <span className="text-brand-white">{totalPrice} EGP</span>
                     </div>
-                    <div className="flex justify-between text-brand-white/65">
-                      <span>{t("taxes")}</span>
-                      <span>{Math.round(totalPrice * 0.14)} EGP</span>
-                    </div>
                     <div className="flex justify-between border-t border-brand-gold/20 pt-4 font-serif text-lg text-brand-white">
                       <span>{t("total")}</span>
-                      <span>{Math.round(totalPrice * 1.14)} EGP</span>
+                      <span>{totalPrice} EGP</span>
                     </div>
                   </motion.div>
                 )}

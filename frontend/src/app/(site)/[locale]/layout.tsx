@@ -103,9 +103,6 @@ export async function generateMetadata({
         "max-video-preview": -1,
       },
     },
-    icons: {
-      icon: "/favicon.ico",
-    },
     other: {
       "content-language": locale,
     },
