@@ -1,0 +1,3 @@
+# Talé — nightly MongoDB backup, 03:15 UTC daily.
+# Install as the tale user: crontab -u tale deploy/cron/mongo-backup.crontab
+15 3 * * * /var/www/tale/deploy/mongo-backup.sh >> /var/log/tale/backup.log 2>&1

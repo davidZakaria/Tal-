@@ -1,9 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from 'next/navigation';
-import { ArrowRight } from 'lucide-react';
-import { SiteLogo } from '@/components/SiteLogo';
+import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { ArrowRight } from "lucide-react";
+import NextLink from "next/link";
+import { Link } from "@/i18n/navigation";
+import { SiteLogo } from "@/components/SiteLogo";
 
 function InstagramIcon({ className }: { className?: string }) {
   return (
@@ -28,20 +30,18 @@ const facebookHref =
 
 export default function Footer() {
   const pathname = usePathname();
-  
-  // Guard clause: Hide footer structurally on the immersive Admin Dashboard and Guest Portal
-  if (pathname?.startsWith('/admin') || pathname?.startsWith('/portal')) {
+  const t = useTranslations("footer");
+
+  if (pathname?.startsWith("/admin") || pathname?.startsWith("/portal")) {
     return null;
   }
 
   return (
     <footer className="bg-brand-charcoal text-brand-white pt-20 sm:pt-28 md:pt-32 pb-10 sm:pb-12 relative overflow-x-hidden flex flex-col items-center">
-      {/* Aesthetic Ocean Wave Bleed */}
-      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-brand-gold/25 to-transparent" />
-      
+      <div className="absolute top-0 start-0 w-full h-px bg-gradient-to-r from-transparent via-brand-gold/25 to-transparent" />
+
       <div className="container mx-auto px-4 sm:px-6 md:px-12 relative z-10 w-full max-w-full min-w-0">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 sm:gap-16 md:gap-8 mb-16 sm:mb-24">
-          
           <div className="md:col-span-4 flex flex-col">
             <div className="mb-8">
               <SiteLogo
@@ -51,11 +51,11 @@ export default function Footer() {
                 linkClassName="focus-visible:ring-offset-brand-charcoal focus-visible:ring-offset-4"
               />
               <p className="mt-5 text-xs uppercase tracking-[0.28em] text-brand-gold/80 font-bold">
-                Talé Hotel · Galala City
+                {t("tagline")}
               </p>
             </div>
             <p className="text-brand-white/55 text-sm leading-relaxed mb-8 max-w-sm font-light">
-              The pinnacle of coastal hospitality. Discover a pristine extension of the Red Sea lifestyle, where uninterrupted panoramic views meet curated personal service at every physical corner.
+              {t("description")}
             </p>
             <div className="flex items-center gap-4 mt-auto pt-6">
               <a
@@ -63,7 +63,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full border border-brand-gold/20 flex items-center justify-center hover:bg-brand-gold hover:border-brand-gold hover:text-brand-charcoal transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
-                aria-label="Talé on Instagram"
+                aria-label={t("instagramAria")}
               >
                 <InstagramIcon className="w-4 h-4" />
               </a>
@@ -72,7 +72,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full border border-brand-gold/20 flex items-center justify-center hover:bg-brand-gold hover:border-brand-gold hover:text-brand-charcoal transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
-                aria-label="Talé on Facebook"
+                aria-label={t("facebookAria")}
               >
                 <FacebookIcon className="w-4 h-4" />
               </a>
@@ -80,52 +80,105 @@ export default function Footer() {
           </div>
 
           <div className="md:col-span-2 md:col-start-6">
-            <h4 className="text-xs uppercase tracking-[0.25em] font-bold text-brand-white/35 mb-8 border-b border-brand-gold/15 pb-4 inline-block">Discovery</h4>
+            <h4 className="text-xs uppercase tracking-[0.25em] font-bold text-brand-white/35 mb-8 border-b border-brand-gold/15 pb-4 inline-block">
+              {t("discovery")}
+            </h4>
             <ul className="space-y-4 text-sm font-light text-brand-white/70">
-              <li><Link href="/#sanctuaries" className="hover:text-brand-gold hover:translate-x-1 inline-block transition-all duration-300">Sanctuaries</Link></li>
-              <li><span className="hover:text-brand-gold hover:translate-x-1 inline-block transition-all duration-300 cursor-pointer">Coastal Dining</span></li>
-              <li><span className="hover:text-brand-gold hover:translate-x-1 inline-block transition-all duration-300 cursor-pointer">Spa & Wellness</span></li>
-              <li><span className="hover:text-brand-gold hover:translate-x-1 inline-block transition-all duration-300 cursor-pointer">Curated Offers</span></li>
+              <li>
+                <Link href="/#suites" className="hover:text-brand-gold hover:translate-x-1 inline-block transition-all duration-300">
+                  {t("discoveryLinks.sanctuaries")}
+                </Link>
+              </li>
+              <li>
+                <span className="hover:text-brand-gold hover:translate-x-1 inline-block transition-all duration-300 cursor-pointer">
+                  {t("discoveryLinks.dining")}
+                </span>
+              </li>
+              <li>
+                <span className="hover:text-brand-gold hover:translate-x-1 inline-block transition-all duration-300 cursor-pointer">
+                  {t("discoveryLinks.spa")}
+                </span>
+              </li>
+              <li>
+                <span className="hover:text-brand-gold hover:translate-x-1 inline-block transition-all duration-300 cursor-pointer">
+                  {t("discoveryLinks.offers")}
+                </span>
+              </li>
             </ul>
           </div>
 
           <div className="md:col-span-2">
-            <h4 className="text-xs uppercase tracking-[0.25em] font-bold text-brand-white/35 mb-8 border-b border-brand-gold/15 pb-4 inline-block">Concierge</h4>
+            <h4 className="text-xs uppercase tracking-[0.25em] font-bold text-brand-white/35 mb-8 border-b border-brand-gold/15 pb-4 inline-block">
+              {t("concierge")}
+            </h4>
             <ul className="space-y-4 text-sm font-light text-brand-white/70">
-              <li><span className="hover:text-brand-gold hover:translate-x-1 inline-block transition-all duration-300 cursor-pointer">Private Transfers</span></li>
-              <li><span className="hover:text-brand-gold hover:translate-x-1 inline-block transition-all duration-300 cursor-pointer">Contact Directly</span></li>
-              <li><Link href="/portal" className="hover:text-brand-gold hover:translate-x-1 inline-block transition-all duration-300 text-brand-gold">Guest Portal</Link></li>
-              <li><span className="hover:text-brand-gold hover:translate-x-1 inline-block transition-all duration-300 cursor-pointer">Careers at Talé</span></li>
+              <li>
+                <span className="hover:text-brand-gold hover:translate-x-1 inline-block transition-all duration-300 cursor-pointer">
+                  {t("conciergeLinks.transfers")}
+                </span>
+              </li>
+              <li>
+                <span className="hover:text-brand-gold hover:translate-x-1 inline-block transition-all duration-300 cursor-pointer">
+                  {t("conciergeLinks.contact")}
+                </span>
+              </li>
+              <li>
+                <NextLink
+                  href="/portal"
+                  className="hover:text-brand-gold hover:translate-x-1 inline-block transition-all duration-300 text-brand-gold"
+                >
+                  {t("conciergeLinks.portal")}
+                </NextLink>
+              </li>
+              <li>
+                <span className="hover:text-brand-gold hover:translate-x-1 inline-block transition-all duration-300 cursor-pointer">
+                  {t("conciergeLinks.careers")}
+                </span>
+              </li>
             </ul>
           </div>
 
           <div className="md:col-span-3">
-             <h4 className="text-xs uppercase tracking-[0.25em] font-bold text-brand-white/35 mb-8 border-b border-brand-gold/15 pb-4 inline-block">Private Newsletter</h4>
-             <p className="text-brand-white/55 text-xs mb-6 font-light leading-relaxed">Subscribe for strictly exclusive access to peak-season suite availability prior to global drops.</p>
-             <div className="relative group">
-               <input type="email" placeholder="Your email address" className="w-full bg-transparent border-b border-brand-gold/25 py-3 pr-10 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-brand-charcoal focus:border-brand-gold text-brand-white placeholder:text-brand-white/25 transition-colors" />
-               <button type="button" aria-label="Subscribe" className="absolute right-0 top-3 text-brand-white/45 group-hover:text-brand-gold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold rounded"><ArrowRight className="w-4 h-4" /></button>
-             </div>
+            <h4 className="text-xs uppercase tracking-[0.25em] font-bold text-brand-white/35 mb-8 border-b border-brand-gold/15 pb-4 inline-block">
+              {t("newsletter")}
+            </h4>
+            <p className="text-brand-white/55 text-xs mb-6 font-light leading-relaxed">
+              {t("newsletterIntro")}
+            </p>
+            <div className="relative group">
+              <input
+                type="email"
+                placeholder={t("newsletterPlaceholder")}
+                className="w-full bg-transparent border-b border-brand-gold/25 py-3 pe-10 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold focus-visible:ring-offset-2 focus-visible:ring-offset-brand-charcoal focus:border-brand-gold text-brand-white placeholder:text-brand-white/25 transition-colors"
+              />
+              <button
+                type="button"
+                aria-label={t("subscribeAria")}
+                className="absolute end-0 top-3 text-brand-white/45 group-hover:text-brand-gold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold rounded"
+              >
+                <ArrowRight className="w-4 h-4 rtl:-scale-x-100" />
+              </button>
+            </div>
           </div>
         </div>
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 pt-8 border-t border-brand-white/10 text-[10px] sm:text-xs uppercase tracking-[0.08em] sm:tracking-[0.1em] text-brand-white/35 font-bold">
-           <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-center sm:text-left w-full md:w-auto">
-             <SiteLogo
-               href="/"
-               variant="onDark"
-               wrapperClassName="h-14 w-48 sm:h-16 sm:w-56"
-               imageClassName="opacity-90"
-               linkClassName="focus-visible:ring-offset-brand-charcoal focus-visible:ring-offset-4"
-             />
-             <p className="leading-relaxed max-w-xl">
-               © {new Date().getFullYear()} Talé Hotel & Resorts. All Rights Reserved. Engineered By David Zakaria.
-             </p>
-           </div>
-           <div className="flex flex-wrap justify-center gap-4 sm:gap-6 md:mt-0">
-             <span className="hover:text-brand-gold transition-colors cursor-pointer">Privacy Framework</span>
-             <span className="hover:text-brand-gold transition-colors cursor-pointer">Terms of Stay</span>
-           </div>
+          <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-center sm:text-start w-full md:w-auto">
+            <SiteLogo
+              href="/"
+              variant="onDark"
+              wrapperClassName="h-14 w-48 sm:h-16 sm:w-56"
+              imageClassName="opacity-90"
+              linkClassName="focus-visible:ring-offset-brand-charcoal focus-visible:ring-offset-4"
+            />
+            <p className="leading-relaxed max-w-xl">
+              {t("copyright", { year: new Date().getFullYear() })}
+            </p>
+          </div>
+          <div className="flex flex-wrap justify-center gap-4 sm:gap-6 md:mt-0">
+            <span className="hover:text-brand-gold transition-colors cursor-pointer">{t("privacy")}</span>
+            <span className="hover:text-brand-gold transition-colors cursor-pointer">{t("terms")}</span>
+          </div>
         </div>
       </div>
     </footer>

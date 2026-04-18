@@ -1,6 +1,8 @@
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
+const compression = require('compression');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const passport = require('passport');
@@ -27,18 +29,52 @@ if (process.env.NODE_ENV === 'production') {
 
 const app = express();
 
+/**
+ * Behind Nginx on the VPS the real client IP is in X-Forwarded-For. Trust a
+ * single hop by default so `req.ip` and express-rate-limit work correctly.
+ * Override with TRUST_PROXY=false to disable, or TRUST_PROXY=<number|cidr>.
+ */
+const trustProxy = (() => {
+  const raw = process.env.TRUST_PROXY;
+  if (raw === undefined || raw === '') return 1;
+  if (raw === 'true') return 1;
+  if (raw === 'false') return false;
+  const asNumber = Number(raw);
+  return Number.isFinite(asNumber) ? asNumber : raw;
+})();
+app.set('trust proxy', trustProxy);
+
 const corsOrigins = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map((s) => s.trim()).filter(Boolean)
   : ['http://localhost:3000'];
 
+app.use(
+  helmet({
+    // The API never serves HTML to browsers directly (Next.js does), so the
+    // default CSP would only cause noise. Leave other hardening headers on.
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
+app.use(compression());
 app.use(
   cors({
     origin: corsOrigins,
     credentials: true,
   })
 );
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '200kb' }));
+app.use(express.urlencoded({ extended: true, limit: '200kb' }));
+
+// Lightweight health endpoint for Nginx / uptime monitors.
+app.get('/healthz', (req, res) => {
+  const dbState = mongoose.connection.readyState; // 0 disconnected, 1 connected, 2 connecting, 3 disconnecting
+  res.status(dbState === 1 ? 200 : 503).json({
+    ok: dbState === 1,
+    db: ['disconnected', 'connected', 'connecting', 'disconnecting'][dbState] || 'unknown',
+    uptime: process.uptime(),
+  });
+});
 
 // Initialize Passport Strategies
 require('./config/passport');
@@ -61,12 +97,14 @@ const propertyRoutes = require('./routes/properties');
 const inventoryRoutes = require('./routes/inventory');
 const mediaRoutes = require('./routes/media');
 const paymentRoutes = require('./routes/payment');
+const leadRoutes = require('./routes/leads');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/properties', propertyRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/leads', leadRoutes);
 
 app.get('/', (req, res) => {
   res.send('Talé API Service is running...');

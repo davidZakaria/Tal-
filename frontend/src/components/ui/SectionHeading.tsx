@@ -10,7 +10,7 @@ export default function SectionHeading({
   children?: ReactNode;
 }) {
   return (
-    <div className="max-w-4xl mb-12 md:mb-16 md:pl-12">
+    <div className="max-w-4xl mb-12 md:mb-16 md:ps-12">
       {eyebrow && (
         <p className="mb-4 text-xs font-bold uppercase tracking-[0.25em] text-sapphire/50">
           {eyebrow}

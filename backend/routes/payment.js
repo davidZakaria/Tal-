@@ -7,6 +7,25 @@ const { protect, guestOnly } = require('../middleware/authMiddleware');
 
 const fetchAPI = typeof fetch !== 'undefined' ? fetch : require('node-fetch');
 
+/**
+ * PayMob is intentionally gated until the integration is production-ready.
+ * Enable by setting both PAYMOB_ENABLED=true and PAYMOB_API_KEY in backend/.env.
+ * When disabled, the admin completes payments manually via
+ * PATCH /api/inventory/reservations/:id/confirm (bank transfer / cash settlement).
+ */
+function isPaymobEnabled() {
+  const flag = String(process.env.PAYMOB_ENABLED || '').toLowerCase();
+  const flagOn = flag === 'true' || flag === '1' || flag === 'yes';
+  return flagOn && Boolean(process.env.PAYMOB_API_KEY);
+}
+
+// @route   GET /api/payment/config
+// @desc    Public readiness probe used by the UI to show/hide card payment entry points
+// @access  Public
+router.get('/config', (req, res) => {
+  res.json({ paymobCheckout: isPaymobEnabled() });
+});
+
 // ==========================================
 // 1. PAYMOB CHECKOUT FOR AN APPROVED RESERVATION
 // ==========================================
@@ -14,8 +33,12 @@ router.post('/checkout', protect, guestOnly, async (req, res) => {
   try {
     const { reservationId } = req.body;
 
-    if (!process.env.PAYMOB_API_KEY) {
-      return res.status(400).json({ error: 'PAYMOB_API_KEY is not configured in backend setup.' });
+    if (!isPaymobEnabled()) {
+      return res.status(503).json({
+        code: 'PAYMOB_DISABLED',
+        message:
+          'Online card payment is under development. Please contact our team to complete this reservation.',
+      });
     }
 
     if (!reservationId) {
@@ -134,6 +157,10 @@ router.post('/checkout', protect, guestOnly, async (req, res) => {
 // 2. PAYMOB SECURE HMAC-SHA512 WEBHOOK CALLBACK
 // ==========================================
 router.post('/webhook', async (req, res) => {
+  if (!isPaymobEnabled()) {
+    return res.status(200).json({ status: 'PayMob disabled; ignoring webhook.' });
+  }
+
   const hmacSecret = process.env.HMAC_SECRET;
   const paymobHmac = req.query.hmac;
   const obj = req.body.obj;

@@ -1,24 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Talé Hotel frontend — Next.js App Router with bilingual (English / Arabic)
+localization, RTL-aware layout, and locale-specific SEO metadata.
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) (auto-redirects to the
+preferred locale, `/en` or `/ar`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Route structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/app/
+├── (site)/[locale]/        # public brochure, property detail, auth/success
+│   ├── layout.tsx          # <html lang+dir>, fonts, SEO metadata, JSON-LD
+│   ├── page.tsx            # home (renders HomeClient + Hotel schema)
+│   ├── properties/[id]/    # suite detail
+│   └── auth/success/       # OAuth callback
+├── (portal)/portal/        # guest portal (English only, noindex)
+├── (admin)/admin/          # admin console (English only, noindex)
+├── sitemap.ts              # locale-aware sitemap with hreflang alternates
+└── robots.ts               # disallows /admin, /portal, /auth
+```
+
+Supported locales: `en` (default), `ar`. See `src/i18n/routing.ts`.
+Message dictionaries live in `src/i18n/messages/{en,ar}.json`.
+
+## Environment variables
+
+Copy `.env.example` to `.env.local` and fill in what applies:
+
+| Variable                          | Purpose                                           |
+| --------------------------------- | ------------------------------------------------- |
+| `NEXT_PUBLIC_SITE_URL`            | Canonical origin for SEO (sitemap, hreflang, OG). |
+| `BACKEND_URL`                     | Dev-only API proxy target (default `:5000`).      |
+| `NEXT_PUBLIC_API_URL`             | Public API base; blank uses same-origin `/api`.   |
+| `NEXT_PUBLIC_SOCIAL_INSTAGRAM_URL`| Footer + JSON-LD sameAs.                          |
+| `NEXT_PUBLIC_SOCIAL_FACEBOOK_URL` | Footer + JSON-LD sameAs.                          |
+
+`NEXT_PUBLIC_SITE_URL` must be set in production so canonical URLs and
+hreflang tags resolve to the real origin.
+
+## i18n notes
+
+- Use the `Link`, `useRouter`, and `usePathname` exports from
+  `@/i18n/navigation` in client components to preserve locale on navigation.
+- Use logical Tailwind utilities (`ms-`, `me-`, `ps-`, `pe-`, `start-`,
+  `end-`, `text-start`) instead of left/right variants.
+- Mirror directional icons in RTL with `rtl:-scale-x-100`.
 
 ## Learn More
 

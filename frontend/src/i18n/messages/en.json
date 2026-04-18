@@ -1,0 +1,304 @@
+{
+  "common": {
+    "localeName": "English",
+    "localeShort": "EN",
+    "skipToContent": "Skip to content",
+    "close": "Close",
+    "back": "Back",
+    "loading": "Loading",
+    "retry": "Try again",
+    "currencyEGP": "EGP"
+  },
+  "nav": {
+    "about": "About",
+    "services": "Services",
+    "stays": "Stays",
+    "experience": "Experience",
+    "membership": "Membership",
+    "suites": "Suites",
+    "privatePresentation": "Private Presentation",
+    "portal": "Portal",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "languageSwitcher": "Change language"
+  },
+  "hero": {
+    "eyebrow": "Talé · Galala City · Red Sea",
+    "videoAria": "Talé resort — panoramic Red Sea view",
+    "heading1": "Where Elegance",
+    "headingConnector": "meets",
+    "heading2": "Exclusivity",
+    "subheading": "Luxury is no longer just a stay. It's a place you return to, year after year.",
+    "cta": "Book Your Private Presentation",
+    "scroll": "Scroll"
+  },
+  "about": {
+    "label": "About Talé",
+    "heading": "A destination that",
+    "headingAccent": "belongs",
+    "headingSuffix": "to you.",
+    "body": "<brand>TALÉ</brand> was created to redefine the way people experience vacations, introducing a concept built on consistency, comfort, and a true sense of belonging. Designed for those who seek more than just a temporary stay, offering a destination that naturally becomes part of their yearly lifestyle.",
+    "closing": "Your escape should always be waiting for you."
+  },
+  "services": {
+    "label": "Talé as a 5-Star Hotel",
+    "heading": "Hospitality,",
+    "headingAccent": "finely tuned.",
+    "intro": "Three pillars — experience, services, and wellness — thoughtfully arranged so every detail of your stay is already taken care of.",
+    "experience": {
+      "kicker": "The Experience",
+      "title": "5-star hospitality",
+      "accent": "experience",
+      "items": [
+        "Fully serviced hotel apartments",
+        "Premium interiors and finishing",
+        "International service standards",
+        "Personalized guest journey",
+        "Seamless operations from arrival to departure"
+      ]
+    },
+    "wellness": {
+      "kicker": "Wellness & Recreation",
+      "title": "Rituals for the",
+      "accent": "senses",
+      "items": [
+        "Spa & Massage",
+        "Private experiences"
+      ]
+    },
+    "offerings": {
+      "kicker": "Talé Services",
+      "title": "Unique offerings,",
+      "accent": "effortlessly delivered",
+      "items": [
+        "24/7 concierge & guest support",
+        "Housekeeping & maintenance",
+        "Room service",
+        "Dining experiences",
+        "Security & facility management",
+        "Lifestyle services"
+      ]
+    }
+  },
+  "accommodations": {
+    "label": "Accommodations",
+    "heading": "Three ways to",
+    "headingAccent": "call it yours.",
+    "prev": "Previous accommodation",
+    "next": "Next accommodation",
+    "jumpTo": "Jump to {title}",
+    "items": {
+      "suites": {
+        "label": "Suites",
+        "title": "Suites",
+        "description": "Intimate retreats crafted for couples and solo travelers. Serene interiors, curated furnishings, and uninterrupted Red Sea light."
+      },
+      "duplex": {
+        "label": "Duplex",
+        "title": "Duplexes",
+        "description": "Two-level sanctuaries for larger parties. Quiet private floors above open living, dining, and an elevated sun deck."
+      },
+      "apartment": {
+        "label": "Hotel Apartment",
+        "title": "Hotel Apartments",
+        "description": "Residence-style living with full hotel service — a home by the Red Sea that is effortlessly ready for every return."
+      }
+    }
+  },
+  "experience": {
+    "label": "The Talé Experience",
+    "imageAlt": "The Talé Experience",
+    "heading": "Effortless by",
+    "headingAccent": "design.",
+    "body1": "<brand>TALÉ</brand> offers an effortless, ready-to-use experience with every visit, ensuring the same high level of quality year after year.",
+    "body2": "It combines complete privacy with full hotel service, all thoughtfully designed to create the perfect environment for relaxation and escape."
+  },
+  "membership": {
+    "label": "The Talé Membership",
+    "heading": "Own your escape —",
+    "headingAccent": "every year.",
+    "tagline": "Beyond stay, an experience.",
+    "receiveLabel": "What you receive",
+    "details": [
+      "Private getaway for 10 years",
+      "One week every year",
+      "Fully serviced hotel apartment",
+      "Ready-to-enjoy experience",
+      "Effortless stay"
+    ],
+    "benefitsLabel": "Membership Benefits",
+    "benefits": [
+      "Guaranteed yearly vacation",
+      "No booking stress",
+      "No maintenance or management",
+      "Consistent luxury standard",
+      "Perfect for families & lifestyle planning"
+    ],
+    "limited": "Memberships are strictly limited."
+  },
+  "pricing": {
+    "label": "Pricing & Payment Plan",
+    "duration": "10 Years Membership",
+    "priceFrom": "From",
+    "priceAmount": "350,000",
+    "priceCurrency": "EGP",
+    "taglineLead": "Arrive. Relax. Repeat.",
+    "taglineHighlight": "Every Year.",
+    "planLabel": "Payment Plan",
+    "downPayment": "Down Payment",
+    "installments": "Years installments",
+    "planDescription": "A transparent plan designed for effortless commitment. No surprises — just a clear path to your annual escape.",
+    "limitedNotice": "Memberships are limited. Each private presentation is scheduled personally by our membership director."
+  },
+  "lead": {
+    "label": "Lead Capture",
+    "heading": "Book your private",
+    "headingAccent": "presentation.",
+    "intro": "Leave your details below and our team will reach out within 24 hours to arrange a personal walkthrough.",
+    "name": "Full Name",
+    "email": "Email Address",
+    "phone": "Phone Number",
+    "submit": "Book your private presentation today",
+    "submitting": "Sending your request…",
+    "privacy": "We respect your privacy. Your details are never shared.",
+    "successHeading": "Request received.",
+    "successBody": "Thank you. Our membership director will contact you within 24 hours to schedule your private presentation.",
+    "successReset": "Submit another request",
+    "errors": {
+      "required": "This field is required.",
+      "nameRequired": "Your name is required.",
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Enter a valid email address.",
+      "phoneRequired": "Phone number is required.",
+      "phoneInvalid": "Enter a valid phone number.",
+      "generic": "Could not send your request. Please try again.",
+      "network": "Network error. Please check your connection and try again."
+    }
+  },
+  "inventory": {
+    "label": "Live Inventory",
+    "heading": "Reserve a",
+    "headingAccent": "sanctuary",
+    "headingSuffix": "today.",
+    "intro": "While your membership is being prepared, explore our live suites available for shorter stays and weekend escapes.",
+    "categories": {
+      "all": "All Suites",
+      "signature": "Signature Suite",
+      "ocean": "Ocean Villa",
+      "penthouse": "Penthouse",
+      "alpine": "Alpine Chalet",
+      "standard": "Standard Room"
+    },
+    "loading": "Loading suites",
+    "empty": "No suites match {category} yet.",
+    "viewAll": "View all suites",
+    "roomDefault": "Signature Suite",
+    "upToGuests": "Up to {count} Guests",
+    "privateOccupied": "Private Party Occupied",
+    "descriptionDefault": "Designed as a seamless extension of the coastal lifestyle, bridging curated personal service with purely uninterrupted views of the Red Sea.",
+    "startingRate": "Starting Rate",
+    "exploreSuite": "Explore suite"
+  },
+  "property": {
+    "backAria": "Back",
+    "allSuites": "All suites",
+    "pageNav": "Page",
+    "noImagery": "No imagery yet",
+    "upToGuests": "Up to {count} guests",
+    "heroTagline": "Talé · Galala City — curated coastal living on the Red Sea.",
+    "breadcrumbHome": "Talé",
+    "breadcrumbSanctuaries": "Sanctuaries",
+    "experienceLabel": "The experience",
+    "descriptionDefault": "Indulge in an uninterrupted coastal escape tailored to your stay — panoramic views, refined interiors, and the calm rhythm of the Red Sea.",
+    "amenitiesLabel": "Amenities",
+    "amenitiesEmpty": "Amenities will appear here once configured. Standard Talé comforts apply across all suites.",
+    "heldDates": "Held dates",
+    "heldDatesIntro": "The nights below are already reserved. Choose open dates for your stay.",
+    "pricePerNight": "per night",
+    "arrival": "Arrival",
+    "departure": "Departure",
+    "guests": "Guests",
+    "guest": "Guest",
+    "phoneLabel": "Phone (reservation)",
+    "phonePlaceholder": "+20…",
+    "notOpen": "This suite is not open for booking yet. Browse other sanctuaries or check back later.",
+    "signedInNotice": "You are signed in. After approval, complete payment from your <link>guest portal</link>.",
+    "signInNotice": "<link>Sign in to the guest portal</link> to submit a reservation request.",
+    "datesUnavailable": "Those dates are not available. Please choose another range.",
+    "nightsLine": "{price} EGP × {nights} nights",
+    "taxes": "Taxes & fees (14%)",
+    "total": "Total",
+    "requestReservation": "Request reservation",
+    "submitting": "Submitting…",
+    "datesConflict": "Dates unavailable",
+    "notFound": "This suite could not be found.",
+    "browseSanctuaries": "Browse sanctuaries",
+    "loadingSuite": "Loading suite",
+    "requestSuccess": "Request received. After an administrator approves it, complete payment from your guest portal.",
+    "requestFailed": "Request could not be submitted.",
+    "networkError": "Request failed. Check your connection and try again."
+  },
+  "footer": {
+    "tagline": "Talé Hotel · Galala City",
+    "description": "The pinnacle of coastal hospitality. Discover a pristine extension of the Red Sea lifestyle, where uninterrupted panoramic views meet curated personal service at every physical corner.",
+    "instagramAria": "Talé on Instagram",
+    "facebookAria": "Talé on Facebook",
+    "discovery": "Discovery",
+    "discoveryLinks": {
+      "sanctuaries": "Sanctuaries",
+      "dining": "Coastal Dining",
+      "spa": "Spa & Wellness",
+      "offers": "Curated Offers"
+    },
+    "concierge": "Concierge",
+    "conciergeLinks": {
+      "transfers": "Private Transfers",
+      "contact": "Contact Directly",
+      "portal": "Guest Portal",
+      "careers": "Careers at Talé"
+    },
+    "newsletter": "Private Newsletter",
+    "newsletterIntro": "Subscribe for strictly exclusive access to peak-season suite availability prior to global drops.",
+    "newsletterPlaceholder": "Your email address",
+    "subscribeAria": "Subscribe",
+    "copyright": "© {year} Talé Hotel & Resorts. All Rights Reserved. Engineered By David Zakaria.",
+    "privacy": "Privacy Framework",
+    "terms": "Terms of Stay"
+  },
+  "auth": {
+    "successHeading": "Authenticating Identity Pipeline",
+    "successIntro": "Securely routing payload into User Portal..."
+  },
+  "seo": {
+    "siteName": "Talé Hotel",
+    "homeTitle": "Talé Hotel | Luxury Coastal Living & 10-Year Memberships in Galala City",
+    "homeDescription": "Talé Hotel introduces a tailored hospitality experience at the heart of Galala City. A seamless extension of the coastal lifestyle, bringing together hotel comfort, curated service, and uninterrupted views of the Red Sea — with 10-year private memberships for those who wish to return, year after year.",
+    "homeKeywords": [
+      "Talé Hotel",
+      "Galala City",
+      "Red Sea",
+      "Luxury Coastal Living",
+      "Hotel Memberships",
+      "10-Year Membership",
+      "Galala Hotels",
+      "Private Hotel Residences"
+    ],
+    "propertyTitleFallback": "Suite at Talé Hotel | Galala City",
+    "propertyDescriptionFallback": "A curated coastal sanctuary at Talé Hotel, Galala City. Panoramic Red Sea views, refined interiors, and effortless 5-star service.",
+    "hotel": {
+      "description": "Talé Hotel — luxury coastal living on the Red Sea in Galala City, Egypt. Fully serviced hotel apartments, suites, and duplexes with 10-year private memberships.",
+      "addressLocality": "Galala City",
+      "addressRegion": "Suez Governorate",
+      "addressCountry": "EG",
+      "priceRange": "$$$$",
+      "amenities": [
+        "Free Wi-Fi",
+        "Spa",
+        "Red Sea View",
+        "Room Service",
+        "24/7 Concierge",
+        "Fine Dining"
+      ]
+    }
+  }
+}

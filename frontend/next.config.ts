@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
 import { createRequire } from "module";
 import path from "path";
+
+const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 /** Where Next.js proxies `/api/*` in dev (and when the client uses same-origin `/api` URLs). */
 const backendOrigin = (process.env.BACKEND_URL || "http://127.0.0.1:5000").replace(/\/$/, "");
@@ -14,6 +17,7 @@ const require = createRequire(import.meta.url);
 const appDir = path.dirname(require.resolve("./package.json"));
 
 const nextConfig: NextConfig = {
+  trailingSlash: false,
   turbopack: {
     root: appDir,
   },
@@ -77,4 +81,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);
