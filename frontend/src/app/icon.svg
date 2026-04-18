@@ -1,28 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Tal&#233;">
   <defs>
-    <linearGradient id="sand" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#faf4eb"/>
-      <stop offset="45%" stop-color="#f2e6d6"/>
-      <stop offset="100%" stop-color="#e5d4be"/>
+    <linearGradient id="bg" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#2a3838"/>
+      <stop offset="100%" stop-color="#121818"/>
     </linearGradient>
+    <linearGradient id="gold" x1="0.2" y1="0" x2="0.85" y2="1">
+      <stop offset="0%" stop-color="#e0d0a0"/>
+      <stop offset="45%" stop-color="#c9a86a"/>
+      <stop offset="100%" stop-color="#8f7344"/>
+    </linearGradient>
+    <filter id="markShadow" x="-12%" y="-12%" width="124%" height="124%">
+      <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
   </defs>
-  <rect width="512" height="512" rx="112" fill="url(#sand)"/>
-  <rect x="28" y="28" width="456" height="456" rx="88" fill="none" stroke="#c9a86a" stroke-opacity="0.28" stroke-width="3"/>
-  <!-- Soft sun -->
-  <circle cx="398" cy="102" r="54" fill="#c9a86a" opacity="0.9"/>
-  <!-- Sand dunes -->
-  <path d="M0 308 Q160 268 320 288 T512 296 L512 512 L0 512 Z" fill="#e8d9c6"/>
-  <path d="M0 348 Q256 308 512 352 L512 512 L0 512 Z" fill="#dcc9ae"/>
-  <!-- Boutique hotel: roof + tower -->
-  <path d="M176 198 L256 118 L336 198 Z" fill="#1e2e2e"/>
-  <rect x="188" y="198" width="136" height="202" rx="12" fill="#1e2e2e"/>
-  <!-- Windows -->
-  <rect x="206" y="222" width="30" height="34" rx="4" fill="#c9a86a"/>
-  <rect x="241" y="222" width="30" height="34" rx="4" fill="#c9a86a"/>
-  <rect x="276" y="222" width="30" height="34" rx="4" fill="#c9a86a"/>
-  <rect x="206" y="268" width="30" height="34" rx="4" fill="#c9a86a"/>
-  <rect x="241" y="268" width="30" height="34" rx="4" fill="#c9a86a"/>
-  <rect x="276" y="268" width="30" height="34" rx="4" fill="#c9a86a"/>
-  <!-- Entry -->
-  <rect x="232" y="318" width="48" height="82" rx="8" fill="#c9a86a" opacity="0.82"/>
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+  <rect x="26" y="26" width="460" height="460" rx="90" fill="none" stroke="#c9a86a" stroke-opacity="0.2" stroke-width="2"/>
+  <rect x="34" y="34" width="444" height="444" rx="82" fill="none" stroke="#c9a86a" stroke-opacity="0.09" stroke-width="1"/>
+  <g filter="url(#markShadow)" fill="url(#gold)">
+    <!-- Accent (original geometry) -->
+    <path d="M302 112 L352 82 L338 138 Z"/>
+    <!-- T monogram (original geometry) -->
+    <path d="M96 156 L416 156 L416 212 L284 212 L284 396 L322 396 L322 420 L190 420 L190 396 L228 396 L228 212 L96 212 Z"/>
+  </g>
 </svg>
