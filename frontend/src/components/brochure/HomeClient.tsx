@@ -21,6 +21,7 @@ import {
 import { scrollRevealProps, brochureSpring } from "@/lib/brochureMotion";
 import BrochureHero from "@/components/brochure/BrochureHero";
 import AboutTaleSection from "@/components/brochure/AboutTaleSection";
+import JuraSokhnaSection from "@/components/brochure/JuraSokhnaSection";
 import ServicesBentoSection from "@/components/brochure/ServicesBentoSection";
 import AccommodationsCarousel from "@/components/brochure/AccommodationsCarousel";
 import TaleExperienceSection from "@/components/brochure/TaleExperienceSection";
@@ -28,9 +29,10 @@ import MembershipSection from "@/components/brochure/MembershipSection";
 import PricingLeadSection from "@/components/brochure/PricingLeadSection";
 import { SectionLabel } from "@/components/brochure/SectionLabel";
 
-const NAV_KEYS = ["about", "services", "stays", "experience", "membership", "suites"] as const;
+const NAV_KEYS = ["about", "juraSokhna", "services", "stays", "experience", "membership", "suites"] as const;
 const NAV_HREFS: Record<(typeof NAV_KEYS)[number], string> = {
   about: "#about",
+  juraSokhna: "#jurasokhna",
   services: "#services",
   stays: "#accommodations",
   experience: "#experience",
@@ -214,6 +216,7 @@ export default function HomeClient() {
 
       <BrochureHero />
       <AboutTaleSection />
+      <JuraSokhnaSection />
       <ServicesBentoSection />
       <AccommodationsCarousel />
       <TaleExperienceSection />

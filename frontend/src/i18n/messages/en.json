@@ -11,6 +11,7 @@
   },
   "nav": {
     "about": "About",
+    "juraSokhna": "Jura Sokhna",
     "services": "Services",
     "stays": "Stays",
     "experience": "Experience",
@@ -39,6 +40,18 @@
     "headingSuffix": "to you.",
     "body": "<brand>TALÉ</brand> was created to redefine the way people experience vacations, introducing a concept built on consistency, comfort, and a true sense of belonging. Designed for those who seek more than just a temporary stay, offering a destination that naturally becomes part of their yearly lifestyle.",
     "closing": "Your escape should always be waiting for you."
+  },
+  "juraSokhna": {
+    "label": "Jura Sokhna",
+    "heading": "Coastal vision,",
+    "headingAccent": "hotel-managed.",
+    "headingSuffix": "",
+    "body": "<brand>Talé Hotel</brand> manages <project>Jura Sokhna</project> — a signature development on the Red Sea, <developer>powered by New Jersey Developments</developer>.",
+    "galleryAlts": [
+      "Jura Sokhna — project view",
+      "Jura Sokhna — architecture",
+      "Jura Sokhna — coastal setting"
+    ]
   },
   "services": {
     "label": "Talé as a 5-Star Hotel",

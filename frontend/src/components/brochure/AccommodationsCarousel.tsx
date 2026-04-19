@@ -8,16 +8,13 @@ import { ArrowLeft, ArrowRight } from "lucide-react";
 import { scrollRevealProps } from "@/lib/brochureMotion";
 import { SectionLabel } from "./SectionLabel";
 
-const IMAGES: Record<string, string> = {
-  suites:
-    "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1800&q=80",
-  duplex:
-    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1800&q=80",
-  apartment:
-    "https://images.unsplash.com/photo-1590490360182-c33d57733427?ixlib=rb-4.0.3&auto=format&fit=crop&w=1800&q=80",
-};
-
 const ITEM_KEYS = ["suites", "duplex", "apartment"] as const;
+
+const IMAGES: Record<(typeof ITEM_KEYS)[number], string> = {
+  suites: "/images/interiors/suite.jpeg",
+  duplex: "/images/interiors/Duplex.jpeg",
+  apartment: "/images/interiors/hotel-apartment.jpeg",
+};
 
 export default function AccommodationsCarousel() {
   const reduceMotion = useReducedMotion();
