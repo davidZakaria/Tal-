@@ -37,7 +37,7 @@ export default function BrochureHero() {
         <div className="absolute inset-0 z-[2] bg-noise-overlay pointer-events-none" aria-hidden />
       </motion.div>
 
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 flex flex-col items-center justify-center min-h-[100dvh] text-center text-brand-white pt-28 sm:pt-24 pb-32 sm:pb-40">
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 flex flex-col items-center justify-center min-h-[100dvh] text-center text-brand-white pt-28 sm:pt-24 xl:pt-40 pb-32 sm:pb-40">
         <motion.p
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}

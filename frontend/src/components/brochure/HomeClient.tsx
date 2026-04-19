@@ -29,10 +29,9 @@ import MembershipSection from "@/components/brochure/MembershipSection";
 import PricingLeadSection from "@/components/brochure/PricingLeadSection";
 import { SectionLabel } from "@/components/brochure/SectionLabel";
 
-const NAV_KEYS = ["about", "juraSokhna", "services", "stays", "experience", "membership", "suites"] as const;
+const NAV_KEYS = ["about", "services", "stays", "experience", "membership", "suites"] as const;
 const NAV_HREFS: Record<(typeof NAV_KEYS)[number], string> = {
   about: "#about",
-  juraSokhna: "#jurasokhna",
   services: "#services",
   stays: "#accommodations",
   experience: "#experience",
@@ -98,82 +97,137 @@ export default function HomeClient() {
       className="min-h-screen min-w-0 overflow-x-hidden bg-brand-charcoal text-brand-white font-sans selection:bg-brand-gold/30"
     >
       <nav
-        className={`fixed top-0 w-full z-50 transition-all duration-700 ${
+        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-700 ${
           isScrolled
             ? "bg-brand-charcoal/95 backdrop-blur-xl shadow-lg shadow-black/20 py-3 border-b border-brand-gold/10"
-            : "bg-transparent py-6"
+            : "bg-transparent py-4 sm:py-5 xl:py-5"
         }`}
       >
-        <div className="container mx-auto px-4 sm:px-6 md:px-12 flex items-center gap-4 md:gap-6 min-w-0">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: reduceMotion ? 0 : 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="relative flex items-center shrink-0"
-          >
-            <SiteLogo
-              href="/"
-              variant="onDark"
-              wrapperClassName="h-14 w-44 sm:h-16 sm:w-52 md:h-20 md:w-60"
-              priority
-            />
-          </motion.div>
+        <div className="container mx-auto px-4 sm:px-6 md:px-12 min-w-0">
+          {/* Tablet / mobile: single row — utilities stay off the centered nav strip */}
+          <div className="flex xl:hidden items-center justify-between gap-3 min-w-0">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: reduceMotion ? 0 : 0.8, ease: [0.22, 1, 0.36, 1] }}
+              className="relative flex min-w-0 items-center shrink-0"
+            >
+              <SiteLogo
+                href="/"
+                variant="onDark"
+                wrapperClassName="h-14 w-44 sm:h-16 sm:w-52 md:h-20 md:w-60"
+                priority
+              />
+            </motion.div>
 
-          <div className="hidden xl:flex flex-1 min-w-0 items-center justify-center gap-6 2xl:gap-8">
-            {NAV_KEYS.map((key, i) => (
-              <motion.a
-                key={key}
-                href={NAV_HREFS[key]}
-                initial={{ opacity: 0, y: -12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  delay: reduceMotion ? 0 : 0.15 + i * 0.08,
-                  duration: reduceMotion ? 0 : 0.7,
-                  ease: [0.22, 1, 0.36, 1],
-                }}
-                className={navLinkClass(isScrolled)}
+            <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+              <button
+                type="button"
+                className="rounded-full p-2.5 border border-brand-gold/40 bg-white/10 text-brand-white hover:bg-brand-gold hover:text-brand-charcoal transition-colors backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
+                aria-expanded={mobileNavOpen}
+                aria-controls="mobile-nav"
+                aria-label={mobileNavOpen ? tNav("closeMenu") : tNav("openMenu")}
+                onClick={() => setMobileNavOpen((o) => !o)}
               >
-                {tNav(key)}
+                {mobileNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+
+              <div className="hidden md:block shrink-0">
+                <LanguageSwitcher variant="nav" />
+              </div>
+
+              <motion.a
+                href="#presentation"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: reduceMotion ? 0 : 0.4, duration: reduceMotion ? 0 : 0.8 }}
+                className="hidden sm:inline-flex shrink-0 items-center gap-1.5 px-3.5 md:px-5 py-2.5 md:py-3 font-bold text-[10px] md:text-[11px] tracking-[0.2em] uppercase whitespace-nowrap rounded-full bg-brand-gold/90 text-brand-charcoal hover:bg-brand-yellow hover:shadow-lg transition-all duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
+              >
+                {tNav("privatePresentation")}
+                <ArrowRight className="w-3.5 h-3.5 rtl:-scale-x-100 shrink-0" />
               </motion.a>
-            ))}
+
+              <motion.button
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: reduceMotion ? 0 : 0.5, duration: reduceMotion ? 0 : 0.8 }}
+                type="button"
+                onClick={() => router.push("/portal")}
+                className="shrink-0 px-3 py-2.5 sm:px-4 sm:py-3 font-bold text-[10px] sm:text-[11px] tracking-[0.2em] uppercase whitespace-nowrap transition-all duration-500 rounded-full border border-brand-white/25 text-brand-white hover:bg-brand-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
+              >
+                {tNav("portal")}
+              </motion.button>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3 md:gap-4 shrink-0 ms-auto xl:ms-0">
-            <button
-              type="button"
-              className="xl:hidden rounded-full p-2.5 border border-brand-gold/40 bg-white/10 text-brand-white hover:bg-brand-gold hover:text-brand-charcoal transition-colors backdrop-blur-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
-              aria-expanded={mobileNavOpen}
-              aria-controls="mobile-nav"
-              aria-label={mobileNavOpen ? tNav("closeMenu") : tNav("openMenu")}
-              onClick={() => setMobileNavOpen((o) => !o)}
-            >
-              {mobileNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
+          {/* xl+: brand + utilities on row 1; section links centered on row 2 (no overlap) */}
+          <div className="hidden xl:flex flex-col gap-3 w-full min-w-0">
+            <div className="flex items-center justify-between gap-8 min-w-0 w-full">
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: reduceMotion ? 0 : 0.8, ease: [0.22, 1, 0.36, 1] }}
+                className="relative flex items-center shrink-0 min-w-0"
+              >
+                <SiteLogo
+                  href="/"
+                  variant="onDark"
+                  wrapperClassName="h-14 w-44 sm:h-16 sm:w-52 md:h-20 md:w-60"
+                  priority
+                />
+              </motion.div>
 
-            <div className="hidden md:block shrink-0">
-              <LanguageSwitcher variant="nav" />
+              <div className="flex items-center gap-3 2xl:gap-4 shrink-0">
+                <div className="shrink-0">
+                  <LanguageSwitcher variant="nav" />
+                </div>
+
+                <motion.a
+                  href="#presentation"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: reduceMotion ? 0 : 0.4, duration: reduceMotion ? 0 : 0.8 }}
+                  className="inline-flex shrink-0 items-center gap-2 px-6 md:px-7 py-3 md:py-3.5 font-bold text-[11px] tracking-[0.22em] uppercase whitespace-nowrap rounded-full bg-brand-gold/90 text-brand-charcoal hover:bg-brand-yellow hover:shadow-lg transition-all duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
+                >
+                  {tNav("privatePresentation")}
+                  <ArrowRight className="w-3.5 h-3.5 rtl:-scale-x-100 shrink-0" />
+                </motion.a>
+
+                <motion.button
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: reduceMotion ? 0 : 0.5, duration: reduceMotion ? 0 : 0.8 }}
+                  type="button"
+                  onClick={() => router.push("/portal")}
+                  className="shrink-0 px-5 py-3 font-bold text-[11px] tracking-[0.2em] uppercase whitespace-nowrap transition-all duration-500 rounded-full border border-brand-white/25 text-brand-white hover:bg-brand-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
+                >
+                  {tNav("portal")}
+                </motion.button>
+              </div>
             </div>
 
-            <motion.a
-              href="#presentation"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: reduceMotion ? 0 : 0.4, duration: reduceMotion ? 0 : 0.8 }}
-              className="hidden sm:inline-flex shrink-0 items-center gap-2 px-5 md:px-7 py-3 md:py-3.5 font-bold text-[11px] tracking-[0.25em] uppercase rounded-full bg-brand-gold/90 text-brand-charcoal hover:bg-brand-yellow hover:shadow-lg transition-all duration-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
+            <div
+              className={`flex flex-wrap items-center justify-center gap-x-5 gap-y-2 px-1 pt-1 border-t ${
+                isScrolled ? "border-brand-gold/15" : "border-brand-gold/10"
+              }`}
             >
-              {tNav("privatePresentation")}
-              <ArrowRight className="w-3.5 h-3.5 rtl:-scale-x-100" />
-            </motion.a>
-
-            <motion.button
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: reduceMotion ? 0 : 0.5, duration: reduceMotion ? 0 : 0.8 }}
-              onClick={() => router.push("/portal")}
-              className="shrink-0 px-4 py-2.5 sm:px-5 sm:py-3 font-bold text-[10px] sm:text-[11px] tracking-[0.2em] uppercase transition-all duration-500 rounded-full border border-brand-white/25 text-brand-white hover:bg-brand-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-gold"
-            >
-              {tNav("portal")}
-            </motion.button>
+              {NAV_KEYS.map((key, i) => (
+                <motion.a
+                  key={key}
+                  href={NAV_HREFS[key]}
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    delay: reduceMotion ? 0 : 0.1 + i * 0.06,
+                    duration: reduceMotion ? 0 : 0.55,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                  className={`${navLinkClass(isScrolled)} shrink-0`}
+                >
+                  {tNav(key)}
+                </motion.a>
+              ))}
+            </div>
           </div>
         </div>
 
