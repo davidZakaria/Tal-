@@ -59,6 +59,7 @@ export default function JuraSokhnaSection() {
           viewport={{ once: true, margin: "-60px" }}
           transition={reduceMotion ? { duration: 0 } : { duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
           className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 md:gap-6 max-w-5xl mx-auto"
+          data-jura-gallery-count={GALLERY.length}
         >
           {GALLERY.map((src, i) => (
             <div
