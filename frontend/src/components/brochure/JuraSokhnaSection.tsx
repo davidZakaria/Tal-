@@ -9,7 +9,6 @@ import { SectionLabel } from "./SectionLabel";
 const GALLERY = [
   "/images/jurasokhna/01.webp",
   "/images/jurasokhna/C12-01.webp",
-  "/images/jurasokhna/C12-02.webp",
 ] as const;
 
 export default function JuraSokhnaSection() {
@@ -59,7 +58,7 @@ export default function JuraSokhnaSection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={reduceMotion ? { duration: 0 } : { duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 md:gap-6 max-w-6xl mx-auto"
+          className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 md:gap-6 max-w-5xl mx-auto"
         >
           {GALLERY.map((src, i) => (
             <div
@@ -70,7 +69,7 @@ export default function JuraSokhnaSection() {
                 src={src}
                 alt={galleryAlts[i] ?? ""}
                 fill
-                sizes="(max-width: 640px) 100vw, 33vw"
+                sizes="(max-width: 640px) 100vw, 50vw"
                 className="object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-brand-charcoal/50 via-transparent to-transparent pointer-events-none" aria-hidden />
