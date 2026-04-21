@@ -25,7 +25,7 @@ export default function TaleExperienceSection() {
             {/* Main editorial image */}
             <div className="relative aspect-[4/5] w-full rounded-[2rem] md:rounded-[3rem] overflow-hidden border border-brand-gold/20 shadow-[0_40px_90px_rgba(0,0,0,0.45)]">
               <Image
-                src="/images/Stock/Serene Oceanview Bedroom.png"
+                src="/images/Stock/Serene Oceanview Bedroom.webp"
                 alt={t("imageAlt")}
                 fill
                 sizes="(max-width: 1024px) 80vw, 40vw"

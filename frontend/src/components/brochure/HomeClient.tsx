@@ -8,6 +8,7 @@ import {
 } from "framer-motion";
 import { ArrowRight, Users, Menu, X } from "lucide-react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { SiteLogo } from "@/components/SiteLogo";
@@ -21,14 +22,18 @@ import {
 import { scrollRevealProps, brochureSpring } from "@/lib/brochureMotion";
 import BrochureHero from "@/components/brochure/BrochureHero";
 import AboutTaleSection from "@/components/brochure/AboutTaleSection";
-import JuraSokhnaSection from "@/components/brochure/JuraSokhnaSection";
-import ServicesBentoSection from "@/components/brochure/ServicesBentoSection";
-import AccommodationsCarousel from "@/components/brochure/AccommodationsCarousel";
-import TaleExperienceSection from "@/components/brochure/TaleExperienceSection";
-import LifestyleMosaicSection from "@/components/brochure/LifestyleMosaicSection";
-import MembershipSection from "@/components/brochure/MembershipSection";
-import PricingLeadSection from "@/components/brochure/PricingLeadSection";
 import { SectionLabel } from "@/components/brochure/SectionLabel";
+
+// Below-the-fold sections are code-split so they don't inflate the initial JS
+// bundle for the hero + above-the-fold content. They still render on the client
+// (brochure is all "use client"), just from separately-chunked files.
+const JuraSokhnaSection = dynamic(() => import("@/components/brochure/JuraSokhnaSection"));
+const ServicesBentoSection = dynamic(() => import("@/components/brochure/ServicesBentoSection"));
+const AccommodationsCarousel = dynamic(() => import("@/components/brochure/AccommodationsCarousel"));
+const TaleExperienceSection = dynamic(() => import("@/components/brochure/TaleExperienceSection"));
+const LifestyleMosaicSection = dynamic(() => import("@/components/brochure/LifestyleMosaicSection"));
+const MembershipSection = dynamic(() => import("@/components/brochure/MembershipSection"));
+const PricingLeadSection = dynamic(() => import("@/components/brochure/PricingLeadSection"));
 
 const NAV_KEYS = ["about", "services", "stays", "experience", "membership", "suites"] as const;
 const NAV_HREFS: Record<(typeof NAV_KEYS)[number], string> = {
@@ -65,8 +70,25 @@ export default function HomeClient() {
   const { data: dbProperties, isLoading } = useProperties();
 
   useEffect(() => {
-    const handleScroll = () => setIsScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
+    // rAF-throttled scroll listener; only updates state when crossing the threshold,
+    // so setIsScrolled fires at most twice per scroll session instead of on every pixel.
+    let ticking = false;
+    let scrolled = window.scrollY > 50;
+    setIsScrolled(scrolled);
+
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const next = window.scrollY > 50;
+        if (next !== scrolled) {
+          scrolled = next;
+          setIsScrolled(next);
+        }
+        ticking = false;
+      });
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 

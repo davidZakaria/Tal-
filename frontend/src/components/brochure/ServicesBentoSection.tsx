@@ -146,7 +146,7 @@ export default function ServicesBentoSection() {
             title={t("wellness.title")}
             accent={t("wellness.accent")}
             items={wellnessItems}
-            accentImage="/images/Stock/Serene Spa Setting.png"
+            accentImage="/images/Stock/Serene Spa Setting.webp"
             className="lg:row-span-1"
           />
           <Pillar

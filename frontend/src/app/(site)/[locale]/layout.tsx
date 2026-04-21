@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
-import { Inter, Playfair_Display, Amiri, IBM_Plex_Sans_Arabic } from "next/font/google";
+import { Inter, Amiri, IBM_Plex_Sans_Arabic } from "next/font/google";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import AppProviders from "@/providers/AppProviders";
@@ -14,12 +14,17 @@ const inter = Inter({
   display: "swap",
 });
 
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
-  subsets: ["latin"],
-  display: "swap",
-});
+// Playfair Display is loaded via the Google Fonts <link> below instead of
+// next/font. next/font would self-host a separate Playfair .woff2 even though
+// our titles CSS pins them to the literal family name "Playfair Display"
+// (which the CDN provides), so self-hosting was shipping an unused second copy.
+// The CDN file is widely cached across the web and preconnected here.
 
+// Arabic fonts are only applied when the active locale is `ar` (see below), but
+// next/font still extracts and subsets them at build time. Keeping them declared
+// here (rather than in a conditional block) is required for next/font — it does
+// not allow conditional initialization. Their CSS is only attached to <body>
+// when the locale is Arabic, so Latin visitors don't get the font-face CSS.
 const amiri = Amiri({
   variable: "--font-amiri",
   weight: ["400", "700"],
@@ -122,18 +127,23 @@ export default async function LocaleRootLayout({
 
   const dir = locale === "ar" ? "rtl" : "ltr";
 
+  // Arabic font variables are only attached for the `ar` locale to avoid
+  // shipping that CSS + woff2 to Latin visitors.
+  const fontVars =
+    locale === "ar"
+      ? `${inter.variable} ${amiri.variable} ${ibmPlexArabic.variable}`
+      : inter.variable;
+
   return (
     <html lang={locale} dir={dir} suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${playfair.variable} ${amiri.variable} ${ibmPlexArabic.variable} antialiased overflow-x-hidden min-w-0`}
+        className={`${fontVars} antialiased overflow-x-hidden min-w-0`}
         suppressHydrationWarning
       >
-        {/* React 19 auto-hoists <link rel="stylesheet"> to <head>, so rendering
-            these here is equivalent to putting them in <head>. Using an explicit
-            <head> child of <html> is rejected/stripped by the Next.js App Router,
-            which is why the earlier attempt never appeared in the emitted HTML.
-            These guarantee Playfair Display loads as the literal
-            "Playfair Display" family regardless of next/font CSS-var injection. */}
+        {/* Playfair Display via Google Fonts CDN. React 19 auto-hoists
+            <link rel="stylesheet"> to <head>, so rendering here is equivalent
+            to putting it in <head>. An explicit <head> child of <html> is
+            stripped by the Next.js App Router. display=swap prevents FOIT. */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link

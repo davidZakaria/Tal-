@@ -25,7 +25,7 @@ export default function AboutTaleSection() {
         className="hidden md:block absolute left-0 lg:left-6 top-24 w-40 lg:w-56 xl:w-64 aspect-[3/4] rounded-2xl overflow-hidden border border-brand-gold/20 shadow-[0_40px_80px_rgba(0,0,0,0.5)] rotate-[-4deg]"
       >
         <Image
-          src="/images/Stock/Modern Infinity Pool.png"
+          src="/images/Stock/Modern Infinity Pool.webp"
           alt=""
           fill
           sizes="(max-width: 1280px) 14rem, 16rem"
@@ -43,7 +43,7 @@ export default function AboutTaleSection() {
         className="hidden md:block absolute right-0 lg:right-6 bottom-24 w-44 lg:w-60 xl:w-72 aspect-[4/5] rounded-2xl overflow-hidden border border-brand-gold/20 shadow-[0_40px_80px_rgba(0,0,0,0.5)] rotate-[3deg]"
       >
         <Image
-          src="/images/Stock/Serene Breakfast Setup.png"
+          src="/images/Stock/Serene Breakfast Setup.webp"
           alt=""
           fill
           sizes="(max-width: 1280px) 15rem, 18rem"

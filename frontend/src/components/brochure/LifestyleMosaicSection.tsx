@@ -10,17 +10,17 @@ import { motion, useReducedMotion } from "framer-motion";
  */
 const TILES = [
   {
-    src: "/images/Stock/11.png",
+    src: "/images/Stock/11.webp",
     className:
       "md:col-span-7 md:row-span-2 aspect-[4/5] md:aspect-auto md:h-full rounded-[1.75rem] md:rounded-[2.25rem]",
   },
   {
-    src: "/images/Stock/5.png",
+    src: "/images/Stock/5.webp",
     className:
       "md:col-span-5 md:row-span-1 aspect-[4/3] rounded-[1.5rem] md:rounded-[2rem] md:translate-y-4",
   },
   {
-    src: "/images/Stock/Layer 1.png",
+    src: "/images/Stock/Layer 1.webp",
     className:
       "md:col-span-5 md:row-span-1 aspect-[4/3] rounded-[1.5rem] md:rounded-[2rem] md:-translate-y-4",
   },

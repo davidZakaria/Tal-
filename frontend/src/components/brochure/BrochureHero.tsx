@@ -1,17 +1,34 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { ArrowRight } from "lucide-react";
 import { brochureEase } from "@/lib/brochureMotion";
 
-const HERO_IMAGE = "/images/Hook Background image/Luxurious Pool Oasis copy.png";
+const HERO_IMAGE = "/images/Hook Background image/Luxurious Pool Oasis copy.webp";
+// 16px inline WebP of the hero — used as `placeholder="blur"` base so the first
+// paint shows a tone-matched blurred image instead of a hard grey flash.
+const HERO_BLUR =
+  "data:image/webp;base64,UklGRmAAAABXRUJQVlA4IFQAAACwAQCdASoQAAwAAsBMJaACdABuGsQAAPKFpxI7x5nTrwBZqXDSsdjhicM/3v7yQeEA6nrlY29vAHapxvMoRb+9peHkOgk8AXvtYaVZjY0ZJsjQAAA=";
 
 export default function BrochureHero() {
   const reduceMotion = useReducedMotion();
+  // Parallax is expensive on scroll and does not add value on small screens.
+  // Gate it behind md+ to keep the hero lightweight on mobile and tablets.
+  const [enableParallax, setEnableParallax] = useState(false);
+  useEffect(() => {
+    if (reduceMotion) return;
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const apply = () => setEnableParallax(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, [reduceMotion]);
+
   const { scrollY } = useScroll();
-  const heroY = useTransform(scrollY, [0, 1000], [0, reduceMotion ? 0 : 260]);
+  const heroY = useTransform(scrollY, [0, 1000], [0, enableParallax ? 260 : 0]);
   const t = useTranslations("hero");
 
   const scrollToPresentation = () => {
@@ -27,6 +44,8 @@ export default function BrochureHero() {
           fill
           priority
           sizes="100vw"
+          placeholder="blur"
+          blurDataURL={HERO_BLUR}
           className="object-cover"
         />
         <div className="absolute inset-0 z-[1] bg-brand-forest/55" />
