@@ -25,6 +25,7 @@ import JuraSokhnaSection from "@/components/brochure/JuraSokhnaSection";
 import ServicesBentoSection from "@/components/brochure/ServicesBentoSection";
 import AccommodationsCarousel from "@/components/brochure/AccommodationsCarousel";
 import TaleExperienceSection from "@/components/brochure/TaleExperienceSection";
+import LifestyleMosaicSection from "@/components/brochure/LifestyleMosaicSection";
 import MembershipSection from "@/components/brochure/MembershipSection";
 import PricingLeadSection from "@/components/brochure/PricingLeadSection";
 import { SectionLabel } from "@/components/brochure/SectionLabel";
@@ -115,7 +116,7 @@ export default function HomeClient() {
               <SiteLogo
                 href="/"
                 variant="onDark"
-                wrapperClassName="h-14 w-44 sm:h-16 sm:w-52 md:h-20 md:w-60"
+                wrapperClassName="h-20 w-60 sm:h-24 sm:w-72 md:h-28 md:w-80"
                 priority
               />
             </motion.div>
@@ -172,7 +173,7 @@ export default function HomeClient() {
                 <SiteLogo
                   href="/"
                   variant="onDark"
-                  wrapperClassName="h-14 w-44 sm:h-16 sm:w-52 md:h-20 md:w-60"
+                  wrapperClassName="h-24 w-72 md:h-28 md:w-80 2xl:h-32 2xl:w-96"
                   priority
                 />
               </motion.div>
@@ -274,6 +275,7 @@ export default function HomeClient() {
       <ServicesBentoSection />
       <AccommodationsCarousel />
       <TaleExperienceSection />
+      <LifestyleMosaicSection />
       <MembershipSection />
       <PricingLeadSection />
 

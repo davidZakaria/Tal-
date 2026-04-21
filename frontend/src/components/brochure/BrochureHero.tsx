@@ -1,12 +1,12 @@
 "use client";
 
+import Image from "next/image";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { ArrowRight } from "lucide-react";
 import { brochureEase } from "@/lib/brochureMotion";
 
-const HERO_POSTER =
-  "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=2500&q=80";
+const HERO_IMAGE = "/images/Hook Background image/Luxurious Pool Oasis copy.png";
 
 export default function BrochureHero() {
   const reduceMotion = useReducedMotion();
@@ -21,23 +21,20 @@ export default function BrochureHero() {
   return (
     <section className="relative min-h-[100dvh] w-full overflow-hidden flex items-center justify-center">
       <motion.div style={{ y: heroY }} className="absolute inset-0 z-0 scale-[1.08] sm:scale-110">
-        <video
-          className="absolute inset-0 h-full w-full object-cover"
-          autoPlay
-          muted
-          loop
-          playsInline
-          poster={HERO_POSTER}
-          aria-label={t("videoAria")}
-        >
-          <source src="/hero.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 z-[1] bg-brand-forest/60" />
-        <div className="absolute inset-0 z-[1] bg-gradient-to-b from-brand-charcoal/40 via-brand-teal/60 to-brand-forest/90" />
+        <Image
+          src={HERO_IMAGE}
+          alt={t("imageAlt")}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+        />
+        <div className="absolute inset-0 z-[1] bg-brand-forest/55" />
+        <div className="absolute inset-0 z-[1] bg-gradient-to-b from-brand-charcoal/35 via-brand-teal/55 to-brand-forest/90" />
         <div className="absolute inset-0 z-[2] bg-noise-overlay pointer-events-none" aria-hidden />
       </motion.div>
 
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 flex flex-col items-center justify-center min-h-[100dvh] text-center text-brand-white pt-28 sm:pt-24 xl:pt-40 pb-32 sm:pb-40">
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 flex flex-col items-center justify-center min-h-[100dvh] text-center text-brand-white pt-36 sm:pt-40 md:pt-48 xl:pt-64 2xl:pt-72 pb-32 sm:pb-40">
         <motion.p
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
@@ -47,7 +44,7 @@ export default function BrochureHero() {
           {t("eyebrow")}
         </motion.p>
 
-        <h1 className="font-serif font-light leading-[0.95] tracking-tight text-[clamp(2.5rem,9vw,7.5rem)] max-w-[18ch] mx-auto">
+        <h1 className="font-serif font-light leading-[0.95] tracking-tight text-[clamp(2rem,6.5vw,5.25rem)] max-w-[18ch] mx-auto">
           <span className="block overflow-hidden">
             <motion.span
               initial={{ y: reduceMotion ? 0 : "110%" }}

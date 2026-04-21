@@ -128,6 +128,18 @@ export default async function LocaleRootLayout({
         className={`${inter.variable} ${playfair.variable} ${amiri.variable} ${ibmPlexArabic.variable} antialiased overflow-x-hidden min-w-0`}
         suppressHydrationWarning
       >
+        {/* React 19 auto-hoists <link rel="stylesheet"> to <head>, so rendering
+            these here is equivalent to putting them in <head>. Using an explicit
+            <head> child of <html> is rejected/stripped by the Next.js App Router,
+            which is why the earlier attempt never appeared in the emitted HTML.
+            These guarantee Playfair Display loads as the literal
+            "Playfair Display" family regardless of next/font CSS-var injection. */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
+        />
         <NextIntlClientProvider>
           <AppProviders>
             {children}

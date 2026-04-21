@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+/* NOTE: Playfair Display is loaded via a <link> tag in the root layout's <head>
+   (see src/app/(site)/[locale]/layout.tsx). We load it there instead of via
+   `@import url(...)` here because Tailwind v4's Lightning-CSS pipeline can
+   strip or re-order remote `@import` rules, causing the font to silently not
+   load in dev. The <link> approach bypasses the CSS bundler entirely.
+   `next/font` also injects `--font-playfair`; the literal "Playfair Display"
+   in the font stack below is the backup if that variable ever fails. */
+
 /* Do not set global scroll-behavior: smooth — it interacts badly with scroll-linked
    animations (e.g. Framer Motion + useScroll) and can spike CPU/GPU in dev. Use
    scrollIntoView({ behavior: "smooth" }) only where needed. */
@@ -39,8 +47,14 @@
   --color-sapphire-dark: var(--color-sapphire-dark);
   --color-turquoise: var(--color-turquoise);
 
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-playfair), ui-serif, Georgia, serif;
+  /* Use var(--x, fallback) so when next/font fails to inject --font-inter /
+     --font-playfair (a real bug in Next 16 + Turbopack dev), the declaration
+     stays valid and gracefully falls through to the Google-Fonts-loaded literal
+     family names. Without the inline fallback, an undefined var() invalidates
+     the ENTIRE font-family declaration and the browser silently inherits
+     sans-serif from <body>, which is exactly what was happening on titles. */
+  --font-sans: var(--font-inter, "Inter"), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-playfair, "Playfair Display"), "Playfair Display", ui-serif, Georgia, serif;
 }
 
 html {
@@ -55,6 +69,39 @@ body {
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
   min-width: 0;
+}
+
+/* Titles: Playfair Display (matches Tailwind `font-serif` / `--font-serif`).
+   The !important guards against aggressive utility resets; every brochure title
+   must resolve to Playfair Display regardless of the containing class.
+
+   IMPORTANT: Playfair Display's Google Fonts weight axis is 400–900. Requesting
+   weight 300 (Tailwind `font-light`) causes browsers to silently fall back to
+   a system serif (e.g. Georgia). We therefore clamp the minimum weight to 400
+   for any element that uses our serif so titles always render as Playfair. */
+/* Force Playfair Display directly by its literal @font-face name (loaded by
+   next/font). We intentionally AVOID `var(--font-serif)` / `var(--font-playfair)`
+   here: if either variable ever fails to resolve on a given element (Next 16 +
+   Turbopack dev occasionally skips the className injection on <body>), an
+   undefined `var()` invalidates the whole font-family declaration and the
+   browser silently inherits sans-serif from `<body>`. A literal family-name
+   stack cannot fail that way — it always picks the first loaded family.
+   "Playfair Display Fallback" is the size-adjusted local(Times New Roman) that
+   next/font registers for FOUT-free swap. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.font-serif {
+  font-family: "Playfair Display", "Playfair Display Fallback", ui-serif, Georgia, serif !important;
+}
+
+h1.font-light, h2.font-light, h3.font-light,
+h4.font-light, h5.font-light, h6.font-light,
+.font-serif.font-light {
+  font-weight: 400 !important;
 }
 
 /* Focus: gold ring on dark luxury surfaces */
