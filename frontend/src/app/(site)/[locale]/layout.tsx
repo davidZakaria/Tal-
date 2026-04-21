@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { notFound } from "next/navigation";
-import { Inter, Amiri, IBM_Plex_Sans_Arabic } from "next/font/google";
+import { Inter, Playfair_Display, Amiri, IBM_Plex_Sans_Arabic } from "next/font/google";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import AppProviders from "@/providers/AppProviders";
@@ -14,11 +14,17 @@ const inter = Inter({
   display: "swap",
 });
 
-// Playfair Display is loaded via the Google Fonts <link> below instead of
-// next/font. next/font would self-host a separate Playfair .woff2 even though
-// our titles CSS pins them to the literal family name "Playfair Display"
-// (which the CDN provides), so self-hosting was shipping an unused second copy.
-// The CDN file is widely cached across the web and preconnected here.
+// Self-host Playfair Display via next/font. This gives us:
+//   1. `<link rel="preload">` for the font file automatically (critical for LCP)
+//   2. A size-adjusted local fallback to minimize CLS during swap
+//   3. Same-origin delivery — no cross-origin DNS/TLS handshake
+//   4. Inlined @font-face CSS — no render-blocking external stylesheet
+// globals.css references this via `var(--font-playfair)` in the title stack.
+const playfair = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin"],
+  display: "swap",
+});
 
 // Arabic fonts are only applied when the active locale is `ar` (see below), but
 // next/font still extracts and subsets them at build time. Keeping them declared
@@ -131,8 +137,8 @@ export default async function LocaleRootLayout({
   // shipping that CSS + woff2 to Latin visitors.
   const fontVars =
     locale === "ar"
-      ? `${inter.variable} ${amiri.variable} ${ibmPlexArabic.variable}`
-      : inter.variable;
+      ? `${inter.variable} ${playfair.variable} ${amiri.variable} ${ibmPlexArabic.variable}`
+      : `${inter.variable} ${playfair.variable}`;
 
   return (
     <html lang={locale} dir={dir} suppressHydrationWarning>
@@ -140,16 +146,10 @@ export default async function LocaleRootLayout({
         className={`${fontVars} antialiased overflow-x-hidden min-w-0`}
         suppressHydrationWarning
       >
-        {/* Playfair Display via Google Fonts CDN. React 19 auto-hoists
-            <link rel="stylesheet"> to <head>, so rendering here is equivalent
-            to putting it in <head>. An explicit <head> child of <html> is
-            stripped by the Next.js App Router. display=swap prevents FOIT. */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
-        />
+        {/* Note: the hero image preload is handled by next/image's `priority`
+            prop (it emits a <link rel="preload"> pointing at the exact
+            /_next/image optimized URL). Adding a manual preload here for the
+            raw .webp would be a different URL and just double the bandwidth. */}
         <NextIntlClientProvider>
           <AppProviders>
             {children}

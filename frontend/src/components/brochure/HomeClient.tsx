@@ -22,15 +22,16 @@ import {
 import { scrollRevealProps, brochureSpring } from "@/lib/brochureMotion";
 import BrochureHero from "@/components/brochure/BrochureHero";
 import AboutTaleSection from "@/components/brochure/AboutTaleSection";
+import JuraSokhnaSection from "@/components/brochure/JuraSokhnaSection";
+import ServicesBentoSection from "@/components/brochure/ServicesBentoSection";
+import AccommodationsCarousel from "@/components/brochure/AccommodationsCarousel";
+import TaleExperienceSection from "@/components/brochure/TaleExperienceSection";
 import { SectionLabel } from "@/components/brochure/SectionLabel";
 
-// Below-the-fold sections are code-split so they don't inflate the initial JS
-// bundle for the hero + above-the-fold content. They still render on the client
-// (brochure is all "use client"), just from separately-chunked files.
-const JuraSokhnaSection = dynamic(() => import("@/components/brochure/JuraSokhnaSection"));
-const ServicesBentoSection = dynamic(() => import("@/components/brochure/ServicesBentoSection"));
-const AccommodationsCarousel = dynamic(() => import("@/components/brochure/AccommodationsCarousel"));
-const TaleExperienceSection = dynamic(() => import("@/components/brochure/TaleExperienceSection"));
+// Only truly below-the-fold sections are code-split. Sections visible within
+// a normal desktop scroll of the hero (Jura, Services, Accommodations,
+// TaleExperience) are kept static to avoid chunk-loading round trips that
+// inflate Total Blocking Time during the initial viewport interaction window.
 const LifestyleMosaicSection = dynamic(() => import("@/components/brochure/LifestyleMosaicSection"));
 const MembershipSection = dynamic(() => import("@/components/brochure/MembershipSection"));
 const PricingLeadSection = dynamic(() => import("@/components/brochure/PricingLeadSection"));
