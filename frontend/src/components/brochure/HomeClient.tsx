@@ -121,7 +121,7 @@ export default function HomeClient() {
       className="min-h-screen min-w-0 overflow-x-hidden bg-brand-charcoal text-brand-white font-sans selection:bg-brand-gold/30"
     >
       <nav
-        className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-700 ${
+        className={`fixed top-[length:var(--booking-banner-offset,0px)] left-0 right-0 z-[100] transition-all duration-700 ${
           isScrolled
             ? "bg-brand-charcoal/95 backdrop-blur-xl shadow-lg shadow-black/20 py-3 border-b border-brand-gold/10"
             : "bg-transparent py-4 sm:py-5 xl:py-5"

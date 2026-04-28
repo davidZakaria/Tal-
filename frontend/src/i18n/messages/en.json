@@ -9,6 +9,10 @@
     "retry": "Try again",
     "currencyEGP": "EGP"
   },
+  "booking": {
+    "bannerPaused": "Online booking paused",
+    "bannerOpens": "Reservations open {date}"
+  },
   "nav": {
     "about": "About",
     "juraSokhna": "Jura Sokhna",
@@ -32,6 +36,10 @@
     "subheading": "Luxury is no longer just a stay. It's a place you return to, year after year.",
     "cta": "Book Your Private Presentation",
     "scroll": "Scroll"
+  },
+  "heroBookingNote": {
+    "line1": "Short-stay bookings are paused.",
+    "line2": "Reservation requests reopen on schedule — memberships and presentations stay open."
   },
   "about": {
     "label": "About Talé",
@@ -234,6 +242,7 @@
     "phoneLabel": "Phone (reservation)",
     "phonePlaceholder": "+20…",
     "notOpen": "This suite is not open for booking yet. Browse other sanctuaries or check back later.",
+    "globallyPaused": "Online reservation requests are paused. Booking opens on {date}.",
     "signedInNotice": "You are signed in. After approval, complete payment from your <link>guest portal</link>.",
     "signInNotice": "<link>Sign in to the guest portal</link> to submit a reservation request.",
     "datesUnavailable": "Those dates are not available. Please choose another range.",

@@ -5,6 +5,7 @@ const Property = require('../models/Property');
 const { sendConfirmationEmail } = require('../utils/emailService');
 const Reservation = require('../models/Reservation');
 const { protect, admin, guestOnly } = require('../middleware/authMiddleware');
+const { isBookingGloballyClosed } = require('../config/booking');
 
 const BLOCKING_STATUSES = ['ApprovedAwaitingPayment', 'Confirmed'];
 
@@ -83,6 +84,13 @@ router.post('/reservation-request', protect, guestOnly, async (req, res) => {
     const { propertyId, arrival, departure, guestPhone } = req.body;
     if (!propertyId || !arrival || !departure || !guestPhone) {
       return res.status(400).json({ message: 'propertyId, arrival, departure, and guestPhone are required' });
+    }
+
+    if (isBookingGloballyClosed()) {
+      return res.status(403).json({
+        message:
+          'Online reservations are paused until booking reopens. For membership or private presentations, please use the presentation request form on our site.',
+      });
     }
 
     const property = await Property.findById(propertyId);

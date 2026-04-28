@@ -3,6 +3,7 @@
 import { useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useProperty } from "@/hooks/useProperties";
+import { useBookingStatus } from "@/hooks/useBookingStatus";
 import { motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import {
@@ -55,6 +56,7 @@ export default function PropertyDetails() {
   const t = useTranslations("property");
   const id = params?.id as string;
   const { data: property, isLoading, error } = useProperty(id);
+  const { data: bookingStatus } = useBookingStatus();
 
   const [arrivalDate, setArrivalDate] = useState(() => {
     if (typeof window === "undefined") return "";
@@ -150,12 +152,27 @@ export default function PropertyDetails() {
 
   const totalPrice = property.basePrice * nights;
   const openForBooking = property.openForBooking !== false;
+  const reservationRequestsOpen = bookingStatus?.bookingOpen !== false;
+  const pauseDateLabel =
+    bookingStatus?.opensAt && bookingStatus.bookingOpen === false
+      ? (() => {
+          const parts = bookingStatus.opensAt.split("-").map((p) => parseInt(p, 10));
+          const [y, mo, da] = parts;
+          return new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-US", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+            timeZone: "Africa/Cairo",
+          }).format(new Date(Date.UTC(y, mo - 1, da)));
+        })()
+      : "";
   const extraImages = property.images?.slice(1, 5) ?? [];
   const motionOff = reduceMotion === true;
 
   return (
     <div className="min-h-screen min-w-0 bg-brand-charcoal text-brand-white selection:bg-brand-gold/30">
-      <header className="sticky top-0 z-50 border-b border-black/10 bg-brand-teal shadow-[0_8px_32px_rgba(0,0,0,0.18)]">
+      <header className="sticky top-[length:var(--booking-banner-offset,0px)] z-50 border-b border-black/10 bg-brand-teal shadow-[0_8px_32px_rgba(0,0,0,0.18)]">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-4 px-4 py-4 sm:gap-6 sm:px-6 md:px-10 md:py-5">
           <SiteLogo
             href={homeHref}
@@ -421,6 +438,12 @@ export default function PropertyDetails() {
                   </p>
                 )}
 
+                {openForBooking && !reservationRequestsOpen && pauseDateLabel && (
+                  <p className="rounded-2xl border border-brand-gold/35 bg-brand-teal/50 px-4 py-3 text-xs leading-relaxed text-brand-white/90">
+                    {t("globallyPaused", { date: pauseDateLabel })}
+                  </p>
+                )}
+
                 {guestToken ? (
                   <p className="rounded-2xl border border-brand-gold/25 bg-brand-teal/30 px-4 py-3 text-xs leading-relaxed text-brand-white/80">
                     {t.rich("signedInNotice", {
@@ -488,6 +511,7 @@ export default function PropertyDetails() {
                     hasConflict ||
                     !guestToken ||
                     !openForBooking ||
+                    !reservationRequestsOpen ||
                     !guestPhone.trim()
                   }
                   onClick={async () => {

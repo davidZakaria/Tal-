@@ -3,9 +3,10 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { ArrowRight } from "lucide-react";
 import { brochureEase } from "@/lib/brochureMotion";
+import { useBookingStatus } from "@/hooks/useBookingStatus";
 
 const HERO_IMAGE = "/images/Hook Background image/Luxurious Pool Oasis copy.webp";
 // 16px inline WebP of the hero — used as `placeholder="blur"` base so the first
@@ -30,6 +31,24 @@ export default function BrochureHero() {
   const { scrollY } = useScroll();
   const heroY = useTransform(scrollY, [0, 1000], [0, enableParallax ? 260 : 0]);
   const t = useTranslations("hero");
+  const tHeroNote = useTranslations("heroBookingNote");
+  const tBooking = useTranslations("booking");
+  const locale = useLocale();
+  const { data: bookingStatus, isFetched: bookingFetched } = useBookingStatus();
+  const bookingPaused = Boolean(
+    bookingFetched && bookingStatus && !bookingStatus.bookingOpen && bookingStatus.opensAt
+  );
+  const opensLabel = (() => {
+    if (!bookingStatus?.opensAt) return "";
+    const [y, mo, da] = bookingStatus.opensAt.split("-").map((p) => parseInt(p, 10));
+    return new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-US", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      timeZone: "Africa/Cairo",
+    }).format(new Date(Date.UTC(y, mo - 1, da)));
+  })();
 
   const scrollToPresentation = () => {
     document.getElementById("presentation")?.scrollIntoView({ behavior: "smooth" });
@@ -104,6 +123,24 @@ export default function BrochureHero() {
         >
           {t("subheading")}
         </motion.p>
+
+        {bookingPaused && (
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: reduceMotion ? 0 : 0.85, delay: reduceMotion ? 0 : 0.65, ease: brochureEase }}
+            className="mt-8 max-w-xl rounded-2xl border border-brand-gold/40 bg-brand-forest/85 px-6 py-5 text-center shadow-[0_20px_60px_rgba(0,0,0,0.4)] backdrop-blur-md sm:px-10"
+            role="status"
+          >
+            <p className="text-sm sm:text-base font-medium leading-relaxed text-brand-white/92">
+              {tHeroNote("line1")}
+            </p>
+            <p className="mt-3 font-serif text-lg sm:text-xl italic text-brand-gold">
+              {tBooking("bannerOpens", { date: opensLabel })}
+            </p>
+            <p className="mt-4 text-xs sm:text-sm leading-relaxed text-brand-white/70">{tHeroNote("line2")}</p>
+          </motion.div>
+        )}
 
         <motion.button
           type="button"

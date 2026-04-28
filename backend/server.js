@@ -80,8 +80,16 @@ app.get('/healthz', (req, res) => {
 require('./config/passport');
 app.use(passport.initialize());
 
+const { bookingStatusPayload } = require('./config/booking');
+
+// Public; does not depend on MongoDB — safe for uptime checks before DB is ready.
+app.get('/api/booking-status', (req, res) => {
+  res.json(bookingStatusPayload());
+});
+
 // Return JSON (not HTML from the Next.js proxy) when the DB is not ready yet
 app.use((req, res, next) => {
+  if (req.originalUrl.startsWith('/api/booking-status')) return next();
   if (req.originalUrl.startsWith('/api') && mongoose.connection.readyState !== 1) {
     return res.status(503).json({
       message:

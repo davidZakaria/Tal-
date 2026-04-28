@@ -125,6 +125,22 @@ bash deploy/deploy.sh --pull
 
 That pulls, installs, rebuilds, and `pm2 reload`s with zero downtime.
 
+### Global booking pause (optional)
+
+To pause **guest reservation requests** until a fixed date (for example short-stay bookings closed until 1 January 2027), set in `backend/.env` on the VPS:
+
+```bash
+BOOKING_OPENS_AT=2027-01-01
+```
+
+Then reload the API so the variable is picked up:
+
+```bash
+pm2 reload tale-api --update-env
+```
+
+Omit `BOOKING_OPENS_AT` or leave it empty to allow online reservation requests again (subject to each suite’s `openForBooking` flag). The public site reads `GET /api/booking-status` for the banner and suite form; no extra frontend env is required.
+
 ## 9. Observability
 
 - `pm2 status` / `pm2 logs tale-api` / `pm2 logs tale-web`

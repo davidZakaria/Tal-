@@ -5,6 +5,7 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import AppProviders from "@/providers/AppProviders";
 import Footer from "@/components/Footer";
+import BookingClosedBanner from "@/components/BookingClosedBanner";
 import { routing } from "@/i18n/routing";
 import "../../globals.css";
 
@@ -152,6 +153,7 @@ export default async function LocaleRootLayout({
             raw .webp would be a different URL and just double the bandwidth. */}
         <NextIntlClientProvider>
           <AppProviders>
+            <BookingClosedBanner />
             {children}
             <Footer />
           </AppProviders>
